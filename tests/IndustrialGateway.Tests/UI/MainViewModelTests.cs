@@ -40,8 +40,8 @@ public class MainViewModelTests
         // Assert
         _viewModel.SupportedProtocols.Should().NotBeEmpty();
         _viewModel.SupportedProtocols.Should().Contain(ProtocolType.ModbusTcp);
-        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.OpcUa);
-        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.Mqtt);
+        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.EtherNetIp);
+        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.Egd);
     }
 
     [Fact]

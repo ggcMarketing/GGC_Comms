@@ -50,10 +50,11 @@ public class JsonConfigurationServiceTests : IDisposable
             Port = 502
         };
 
-        var config2 = new OpcUaConfig
+        var config2 = new EtherNetIpConfig
         {
-            Name = "OPC UA 1",
-            EndpointUrl = "opc.tcp://localhost:4840"
+            Name = "EtherNet/IP 1",
+            Host = "192.168.1.50",
+            Port = 44818
         };
 
         await _service.SaveConfigurationAsync(config1);
@@ -65,7 +66,7 @@ public class JsonConfigurationServiceTests : IDisposable
         // Assert
         loaded.Should().HaveCount(2);
         loaded.Should().ContainSingle(c => c.Name == "Modbus 1");
-        loaded.Should().ContainSingle(c => c.Name == "OPC UA 1");
+        loaded.Should().ContainSingle(c => c.Name == "EtherNet/IP 1");
     }
 
     [Fact]
