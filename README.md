@@ -1,17 +1,14 @@
-# Industrial Gateway - Multi-Protocol Communication Interface
+# Industrial Gateway - Industrial Automation Communication Interface
 
-A modern .NET 8 WPF desktop application that provides a unified interface for connecting to multiple industrial automation protocols. This MVP demonstrates clean architecture, MVVM pattern, and extensible protocol support.
+A modern .NET 8 WPF desktop application that provides a unified interface for connecting to industrial automation protocols. This MVP demonstrates clean architecture, MVVM pattern, and extensible protocol support.
 
 ## 🎯 Overview
 
-The Industrial Gateway acts as an intermediate communication interface for industrial automation systems, supporting multiple protocols:
+The Industrial Gateway acts as an intermediate communication interface for industrial automation systems, supporting three core industrial protocols:
 
-- ✅ **Modbus TCP** - Complete implementation using NModbus
-- ✅ **OPC UA** - Complete implementation using OPC Foundation library
-- ✅ **MQTT** - Complete implementation using MQTTnet
-- ⚠️ **EtherNet/IP** - MVP stub (ready for production library integration)
-- ⚠️ **GE EGD** - MVP stub (ready for production library integration)
-- ⚠️ **PROFINET** - MVP stub (ready for production library integration)
+- ✅ **Modbus TCP** - Complete implementation using NModbus library
+- ⚠️ **EtherNet/IP** - MVP stub (ready for libplctag integration)
+- ⚠️ **GE EGD** - MVP stub (Ethernet Global Data protocol)
 
 ## 🏗️ Architecture Overview
 
@@ -27,12 +24,9 @@ IndustrialGateway.sln
 │   │   │   └── IConfigurationService.cs  # Configuration service interface
 │   │   ├── Models/
 │   │   │   ├── ConnectionConfig.cs       # Base configuration class
-│   │   │   ├── ModbusTcpConfig.cs        # Protocol-specific configs
-│   │   │   ├── OpcUaConfig.cs
-│   │   │   ├── MqttConfig.cs
-│   │   │   ├── EtherNetIpConfig.cs
-│   │   │   ├── EgdConfig.cs
-│   │   │   ├── ProfinetConfig.cs
+│   │   │   ├── ModbusTcpConfig.cs        # Modbus TCP configuration
+│   │   │   ├── EtherNetIpConfig.cs       # EtherNet/IP configuration
+│   │   │   ├── EgdConfig.cs              # EGD configuration
 │   │   │   ├── TagDefinition.cs          # Tag/data point model
 │   │   │   ├── TagValue.cs               # Tag value with metadata
 │   │   │   └── ConnectionState.cs        # Connection state enum
@@ -42,16 +36,10 @@ IndustrialGateway.sln
 │   ├── IndustrialGateway.Protocols/      # Protocol implementations
 │   │   ├── ModbusTcp/
 │   │   │   └── ModbusTcpClient.cs        # Full Modbus TCP implementation
-│   │   ├── OpcUa/
-│   │   │   └── OpcUaClient.cs            # Full OPC UA implementation
-│   │   ├── Mqtt/
-│   │   │   └── MqttClient.cs             # Full MQTT implementation
 │   │   ├── EtherNetIp/
 │   │   │   └── EtherNetIpClient.cs       # Stub implementation
 │   │   ├── Egd/
 │   │   │   └── EgdClient.cs              # Stub implementation
-│   │   ├── Profinet/
-│   │   │   └── ProfinetClient.cs         # Stub implementation
 │   │   └── ProtocolClientFactory.cs      # Factory implementation
 │   │
 │   └── IndustrialGateway.UI/             # WPF UI with MVVM
@@ -133,15 +121,17 @@ public interface IProtocolClient : IDisposable
 
 ## 📦 NuGet Dependencies
 
-### Complete Implementations
+### Complete Implementation
 - **NModbus** (3.0.72) - Modbus TCP implementation
-- **OPCFoundation.NetStandard.Opc.Ua** (1.5.374.54) - OPC UA server/client
-- **MQTTnet** (4.3.3.952) - MQTT client library
+
+### Framework Dependencies
+- **Microsoft.Extensions.DependencyInjection** (9.0.0) - Dependency injection
+- **Microsoft.Extensions.Logging** (9.0.0) - Logging abstractions
+- **System.Text.Json** (9.0.0) - JSON serialization
 
 ### Stub Implementations (Ready for Production Libraries)
 - **EtherNet/IP**: Use `libplctag` or `libplctag.NETWrapper`
 - **GE EGD**: Requires proprietary GE libraries or reverse-engineered implementation
-- **PROFINET**: Use Siemens libraries or third-party PROFINET stacks
 
 ## 🚀 Getting Started
 
@@ -169,7 +159,7 @@ dotnet test
 ### Running the Application
 
 1. Launch the application
-2. Select a protocol from the dropdown (e.g., Modbus TCP)
+2. Select a protocol from the dropdown (Modbus TCP, EtherNet/IP, or EGD)
 3. Configure connection settings:
    - Name: Friendly connection name
    - Host: IP address or hostname
@@ -239,7 +229,7 @@ await client.WriteTagAsync(tag, 25.5f);
 ## 🎨 UI Features
 
 ### Main Window
-- Protocol selector dropdown
+- Protocol selector dropdown (Modbus TCP, EtherNet/IP, EGD)
 - Clean, modern interface
 - Status indicators with color coding
 - Real-time tag value display
@@ -319,7 +309,7 @@ Example Modbus TCP configuration:
   "Tags": [
     {
       "Id": "tag-001",
-      "Name": "Temperature",
+      "Name": "Temperature_Zone1",
       "Address": "40001",
       "DataType": "Float",
       "IsReadOnly": false,
@@ -346,12 +336,11 @@ dotnet test --logger "console;verbosity=detailed"
 
 ### For Production
 1. **Replace Protocol Stubs**
-   - Integrate production libraries for EtherNet/IP, EGD, PROFINET
+   - Integrate production libraries for EtherNet/IP, EGD
    - Implement full protocol specifications
 
 2. **Security**
    - Encrypt sensitive configuration data (passwords)
-   - Add certificate management for OPC UA
    - Implement user authentication
 
 3. **Advanced Features**
@@ -384,17 +373,10 @@ To extend this MVP:
 3. Add comprehensive unit tests
 4. Update documentation
 
-## 📞 Support
-
-This MVP demonstrates industrial automation communication architecture. For production deployment, ensure:
-- Proper error handling and recovery
-- Network security measures
-- Compliance with industrial standards
-- Thorough testing with actual hardware
-
 ---
 
 **Version:** 1.0.0-MVP
 **Framework:** .NET 8
 **UI Framework:** WPF with MVVM
 **Architecture:** Clean Architecture with DI
+**Protocols:** Modbus TCP, EtherNet/IP, GE EGD

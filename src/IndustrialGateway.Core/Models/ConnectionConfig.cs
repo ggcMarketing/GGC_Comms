@@ -6,11 +6,8 @@ namespace IndustrialGateway.Core.Models;
 /// Base class for all protocol connection configurations
 /// </summary>
 [JsonDerivedType(typeof(ModbusTcpConfig), "ModbusTcp")]
-[JsonDerivedType(typeof(OpcUaConfig), "OpcUa")]
-[JsonDerivedType(typeof(MqttConfig), "Mqtt")]
 [JsonDerivedType(typeof(EtherNetIpConfig), "EtherNetIp")]
 [JsonDerivedType(typeof(EgdConfig), "Egd")]
-[JsonDerivedType(typeof(ProfinetConfig), "Profinet")]
 public abstract class ConnectionConfig
 {
     /// <summary>
@@ -50,9 +47,6 @@ public abstract class ConnectionConfig
 public enum ProtocolType
 {
     ModbusTcp,
-    OpcUa,
-    Mqtt,
     EtherNetIp,
-    Egd,
-    Profinet
+    Egd
 }

@@ -3,9 +3,6 @@ using IndustrialGateway.Core.Models;
 using IndustrialGateway.Protocols.Egd;
 using IndustrialGateway.Protocols.EtherNetIp;
 using IndustrialGateway.Protocols.ModbusTcp;
-using IndustrialGateway.Protocols.Mqtt;
-using IndustrialGateway.Protocols.OpcUa;
-using IndustrialGateway.Protocols.Profinet;
 using Microsoft.Extensions.Logging;
 
 namespace IndustrialGateway.Protocols;
@@ -30,14 +27,6 @@ public class ProtocolClientFactory : IProtocolClientFactory
                 modbusTcpConfig,
                 _loggerFactory.CreateLogger<ModbusTcpClient>()),
 
-            OpcUaConfig opcUaConfig => new OpcUaClient(
-                opcUaConfig,
-                _loggerFactory.CreateLogger<OpcUaClient>()),
-
-            MqttConfig mqttConfig => new MqttClient(
-                mqttConfig,
-                _loggerFactory.CreateLogger<MqttClient>()),
-
             EtherNetIpConfig etherNetIpConfig => new EtherNetIpClient(
                 etherNetIpConfig,
                 _loggerFactory.CreateLogger<EtherNetIpClient>()),
@@ -45,10 +34,6 @@ public class ProtocolClientFactory : IProtocolClientFactory
             EgdConfig egdConfig => new EgdClient(
                 egdConfig,
                 _loggerFactory.CreateLogger<EgdClient>()),
-
-            ProfinetConfig profinetConfig => new ProfinetClient(
-                profinetConfig,
-                _loggerFactory.CreateLogger<ProfinetClient>()),
 
             _ => throw new NotSupportedException($"Protocol type {config.ProtocolType} is not supported")
         };
@@ -59,11 +44,8 @@ public class ProtocolClientFactory : IProtocolClientFactory
         return protocolType switch
         {
             ProtocolType.ModbusTcp => true,
-            ProtocolType.OpcUa => true,
-            ProtocolType.Mqtt => true,
             ProtocolType.EtherNetIp => true,
             ProtocolType.Egd => true,
-            ProtocolType.Profinet => true,
             _ => false
         };
     }

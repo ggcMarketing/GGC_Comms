@@ -15,13 +15,6 @@
     <!-- Modbus TCP -->
     <PackageReference Include="NModbus" Version="3.0.72" />
 
-    <!-- OPC UA -->
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.5.375.48" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.375.48" />
-
-    <!-- MQTT -->
-    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
-
     <!-- Logging -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
   </ItemGroup>

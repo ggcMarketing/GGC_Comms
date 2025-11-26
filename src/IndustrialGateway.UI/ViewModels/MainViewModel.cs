@@ -68,11 +68,8 @@ public class MainViewModel : ViewModelBase
         ConnectionConfig config = SelectedProtocolType switch
         {
             ProtocolType.ModbusTcp => new ModbusTcpConfig { Name = "Modbus TCP Connection" },
-            ProtocolType.OpcUa => new OpcUaConfig { Name = "OPC UA Connection" },
-            ProtocolType.Mqtt => new MqttConfig { Name = "MQTT Connection" },
             ProtocolType.EtherNetIp => new EtherNetIpConfig { Name = "EtherNet/IP Connection" },
             ProtocolType.Egd => new EgdConfig { Name = "EGD Connection" },
-            ProtocolType.Profinet => new ProfinetConfig { Name = "PROFINET Connection" },
             _ => new ModbusTcpConfig { Name = "Unknown" }
         };
 
