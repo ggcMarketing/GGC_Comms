@@ -1,0 +1,327 @@
+using IndustrialGateway.Core.Interfaces;
+using IndustrialGateway.Core.Models;
+using Microsoft.Extensions.Logging;
+
+namespace IndustrialGateway.Protocols.EtherNetIp;
+
+/// <summary>
+/// EtherNet/IP protocol client (MVP STUB implementation)
+///
+/// NOTE: This is a simulated stub for MVP purposes. In production, you would use a library like:
+/// - libplctag (https://github.com/libplctag/libplctag) via P/Invoke
+/// - Or a .NET wrapper like libplctag.NETWrapper
+///
+/// This stub simulates realistic EtherNet/IP behavior for testing the architecture.
+/// </summary>
+public class EtherNetIpClient : IProtocolClient
+{
+    private readonly EtherNetIpConfig _config;
+    private readonly ILogger<EtherNetIpClient> _logger;
+    private ConnectionState _state = ConnectionState.Disconnected;
+    private CancellationTokenSource? _subscriptionCts;
+    private Task? _subscriptionTask;
+    private readonly List<TagDefinition> _subscribedTags = new();
+    private readonly Dictionary<string, object> _simulatedData = new();
+    private readonly Random _random = new();
+    private readonly object _lockObject = new();
+
+    public ConnectionState State
+    {
+        get => _state;
+        private set
+        {
+            if (_state != value)
+            {
+                _state = value;
+                StateChanged?.Invoke(this, value);
+                _logger.LogInformation("Connection state changed to: {State}", value);
+            }
+        }
+    }
+
+    public event EventHandler<ConnectionState>? StateChanged;
+    public event EventHandler<TagValue>? TagValueChanged;
+
+    public EtherNetIpClient(EtherNetIpConfig config, ILogger<EtherNetIpClient> logger)
+    {
+        _config = config ?? throw new ArgumentNullException(nameof(config));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task ConnectAsync(CancellationToken cancellationToken = default)
+    {
+        if (State == ConnectionState.Connected)
+        {
+            _logger.LogWarning("Already connected");
+            return;
+        }
+
+        try
+        {
+            State = ConnectionState.Connecting;
+            _logger.LogInformation("[STUB] Connecting to EtherNet/IP device at {Host}:{Port}, Slot {Slot}",
+                _config.Host, _config.Port, _config.ProcessorSlot);
+
+            // Simulate connection delay
+            await Task.Delay(500, cancellationToken);
+
+            // Simulate connection success
+            State = ConnectionState.Connected;
+            _logger.LogInformation("[STUB] Successfully connected to EtherNet/IP device");
+        }
+        catch (Exception ex)
+        {
+            State = ConnectionState.Error;
+            _logger.LogError(ex, "Failed to connect to EtherNet/IP device");
+            await DisconnectAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public async Task DisconnectAsync(CancellationToken cancellationToken = default)
+    {
+        if (State == ConnectionState.Disconnected)
+        {
+            return;
+        }
+
+        try
+        {
+            State = ConnectionState.Disconnecting;
+            _logger.LogInformation("[STUB] Disconnecting from EtherNet/IP device");
+
+            await UnsubscribeAllAsync(cancellationToken);
+
+            State = ConnectionState.Disconnected;
+            _logger.LogInformation("[STUB] Disconnected from EtherNet/IP device");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during disconnect");
+            State = ConnectionState.Error;
+        }
+    }
+
+    public async Task<TagValue> ReadTagAsync(TagDefinition tag, CancellationToken cancellationToken = default)
+    {
+        if (State != ConnectionState.Connected)
+        {
+            throw new InvalidOperationException("Not connected to EtherNet/IP device");
+        }
+
+        try
+        {
+            // Simulate read delay
+            await Task.Delay(50, cancellationToken);
+
+            // Simulate reading from device - generate or retrieve simulated value
+            object value = GetOrGenerateSimulatedValue(tag);
+
+            return new TagValue
+            {
+                TagId = tag.Id,
+                TagName = tag.Name,
+                Value = value,
+                Timestamp = DateTime.UtcNow,
+                Quality = TagQuality.Good
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading tag: {TagName}", tag.Name);
+            return new TagValue
+            {
+                TagId = tag.Id,
+                TagName = tag.Name,
+                Value = null,
+                Timestamp = DateTime.UtcNow,
+                Quality = TagQuality.Bad,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    public async Task<IEnumerable<TagValue>> ReadTagsAsync(IEnumerable<TagDefinition> tags, CancellationToken cancellationToken = default)
+    {
+        var results = new List<TagValue>();
+        foreach (var tag in tags)
+        {
+            results.Add(await ReadTagAsync(tag, cancellationToken));
+        }
+        return results;
+    }
+
+    public async Task WriteTagAsync(TagDefinition tag, object value, CancellationToken cancellationToken = default)
+    {
+        if (State != ConnectionState.Connected)
+        {
+            throw new InvalidOperationException("Not connected to EtherNet/IP device");
+        }
+
+        try
+        {
+            // Simulate write delay
+            await Task.Delay(50, cancellationToken);
+
+            // Store the written value in simulation
+            lock (_lockObject)
+            {
+                _simulatedData[tag.Address] = value;
+            }
+
+            _logger.LogInformation("[STUB] Successfully wrote value to tag: {TagName} = {Value}", tag.Name, value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing tag: {TagName}", tag.Name);
+            throw;
+        }
+    }
+
+    public async Task WriteTagsAsync(IDictionary<TagDefinition, object> tagValues, CancellationToken cancellationToken = default)
+    {
+        foreach (var kvp in tagValues)
+        {
+            await WriteTagAsync(kvp.Key, kvp.Value, cancellationToken);
+        }
+    }
+
+    public async Task SubscribeAsync(IEnumerable<TagDefinition> tags, CancellationToken cancellationToken = default)
+    {
+        lock (_lockObject)
+        {
+            foreach (var tag in tags)
+            {
+                if (!_subscribedTags.Any(t => t.Id == tag.Id))
+                {
+                    _subscribedTags.Add(tag);
+                    _logger.LogInformation("[STUB] Subscribed to tag: {TagName}", tag.Name);
+                }
+            }
+
+            if (_subscriptionTask == null || _subscriptionTask.IsCompleted)
+            {
+                _subscriptionCts = new CancellationTokenSource();
+                _subscriptionTask = Task.Run(() => SubscriptionLoopAsync(_subscriptionCts.Token), cancellationToken);
+            }
+        }
+
+        await Task.CompletedTask;
+    }
+
+    public async Task UnsubscribeAsync(IEnumerable<TagDefinition> tags, CancellationToken cancellationToken = default)
+    {
+        lock (_lockObject)
+        {
+            foreach (var tag in tags)
+            {
+                var existing = _subscribedTags.FirstOrDefault(t => t.Id == tag.Id);
+                if (existing != null)
+                {
+                    _subscribedTags.Remove(existing);
+                    _logger.LogInformation("[STUB] Unsubscribed from tag: {TagName}", tag.Name);
+                }
+            }
+        }
+
+        await Task.CompletedTask;
+    }
+
+    public async Task UnsubscribeAllAsync(CancellationToken cancellationToken = default)
+    {
+        _subscriptionCts?.Cancel();
+
+        if (_subscriptionTask != null)
+        {
+            try
+            {
+                await _subscriptionTask;
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        lock (_lockObject)
+        {
+            _subscribedTags.Clear();
+        }
+
+        _subscriptionCts?.Dispose();
+        _subscriptionCts = null;
+        _subscriptionTask = null;
+    }
+
+    private async Task SubscriptionLoopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("[STUB] Starting subscription loop");
+
+        while (!cancellationToken.IsCancellationRequested && State == ConnectionState.Connected)
+        {
+            try
+            {
+                List<TagDefinition> tagsToRead;
+                lock (_lockObject)
+                {
+                    tagsToRead = _subscribedTags.ToList();
+                }
+
+                foreach (var tag in tagsToRead)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
+
+                    var tagValue = await ReadTagAsync(tag, cancellationToken);
+                    TagValueChanged?.Invoke(this, tagValue);
+                }
+
+                var minScanRate = tagsToRead.Any()
+                    ? tagsToRead.Min(t => t.ScanRateMs)
+                    : _config.DefaultScanRateMs;
+
+                await Task.Delay(minScanRate, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in subscription loop");
+                await Task.Delay(1000, cancellationToken);
+            }
+        }
+
+        _logger.LogInformation("[STUB] Subscription loop stopped");
+    }
+
+    private object GetOrGenerateSimulatedValue(TagDefinition tag)
+    {
+        lock (_lockObject)
+        {
+            // If value was written, return it
+            if (_simulatedData.TryGetValue(tag.Address, out var storedValue))
+            {
+                return storedValue;
+            }
+
+            // Otherwise generate a simulated value based on data type
+            return tag.DataType switch
+            {
+                TagDataType.Bool => _random.Next(0, 2) == 1,
+                TagDataType.Int16 => (short)_random.Next(-1000, 1000),
+                TagDataType.UInt16 => (ushort)_random.Next(0, 2000),
+                TagDataType.Int32 => _random.Next(-10000, 10000),
+                TagDataType.UInt32 => (uint)_random.Next(0, 20000),
+                TagDataType.Float => (float)(_random.NextDouble() * 200 - 100),
+                TagDataType.Double => _random.NextDouble() * 200 - 100,
+                TagDataType.String => $"SimValue_{_random.Next(1000, 9999)}",
+                _ => 0
+            };
+        }
+    }
+
+    public void Dispose()
+    {
+        DisconnectAsync().GetAwaiter().GetResult();
+        GC.SuppressFinalize(this);
+    }
+}

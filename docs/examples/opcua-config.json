@@ -1,0 +1,34 @@
+{
+  "$type": "OpcUa",
+  "EndpointUrl": "opc.tcp://localhost:4840",
+  "SecurityPolicy": "None",
+  "MessageSecurityMode": "None",
+  "Username": null,
+  "Password": null,
+  "ApplicationName": "IndustrialGateway",
+  "SessionTimeoutMs": 60000,
+  "Id": "opcua-server-001",
+  "Name": "Local OPC UA Server",
+  "Enabled": true,
+  "Tags": [
+    {
+      "Id": "tag-opcua-001",
+      "Name": "ServerStatus",
+      "Address": "ns=0;i=2259",
+      "DataType": "Int32",
+      "IsReadOnly": true,
+      "ScanRateMs": 2000,
+      "Description": "OPC UA Server status"
+    },
+    {
+      "Id": "tag-opcua-002",
+      "Name": "ProcessVariable",
+      "Address": "ns=2;s=MyVariable",
+      "DataType": "Double",
+      "IsReadOnly": false,
+      "ScanRateMs": 500,
+      "Description": "Process variable from namespace 2"
+    }
+  ],
+  "DefaultScanRateMs": 1000
+}

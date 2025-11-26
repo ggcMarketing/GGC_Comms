@@ -1,0 +1,34 @@
+{
+  "$type": "Egd",
+  "Host": "192.168.1.75",
+  "Port": 18246,
+  "ExchangeId": 1,
+  "ProducerId": "PLC_A",
+  "ProductionIntervalMs": 100,
+  "UseMulticast": false,
+  "MulticastGroup": null,
+  "Id": "egd-device-001",
+  "Name": "GE PACSystems RX3i",
+  "Enabled": true,
+  "Tags": [
+    {
+      "Id": "tag-egd-001",
+      "Name": "EGD_Variable_1",
+      "Address": "0",
+      "DataType": "Int32",
+      "IsReadOnly": false,
+      "ScanRateMs": 100,
+      "Description": "EGD variable from offset 0"
+    },
+    {
+      "Id": "tag-egd-002",
+      "Name": "EGD_Status",
+      "Address": "4",
+      "DataType": "UInt16",
+      "IsReadOnly": true,
+      "ScanRateMs": 100,
+      "Description": "Device status from EGD"
+    }
+  ],
+  "DefaultScanRateMs": 100
+}

@@ -1,0 +1,33 @@
+{
+  "$type": "EtherNetIp",
+  "Host": "192.168.1.50",
+  "Port": 44818,
+  "ProcessorSlot": 0,
+  "TimeoutMs": 5000,
+  "UseLargeForwardOpen": false,
+  "VendorId": null,
+  "Id": "eip-controller-001",
+  "Name": "Allen-Bradley ControlLogix",
+  "Enabled": true,
+  "Tags": [
+    {
+      "Id": "tag-eip-001",
+      "Name": "Conveyor_Speed",
+      "Address": "Conveyor_Speed",
+      "DataType": "Float",
+      "IsReadOnly": false,
+      "ScanRateMs": 200,
+      "Description": "Conveyor belt speed"
+    },
+    {
+      "Id": "tag-eip-002",
+      "Name": "Motor_Status",
+      "Address": "Motor_Status",
+      "DataType": "Bool",
+      "IsReadOnly": true,
+      "ScanRateMs": 100,
+      "Description": "Motor running status"
+    }
+  ],
+  "DefaultScanRateMs": 500
+}

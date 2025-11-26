@@ -1,0 +1,179 @@
+<UserControl x:Class="IndustrialGateway.UI.Views.ModbusTcpConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:IndustrialGateway.UI.Views"
+             xmlns:converters="clr-namespace:IndustrialGateway.UI.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000"
+             Background="White">
+
+    <UserControl.Resources>
+        <converters:ConnectionStateToColorConverter x:Key="StateToColorConverter"/>
+
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="BorderBrush" Value="#DADADA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="MinWidth" Value="120"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5"/>
+            <Setter Property="MinWidth" Value="200"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Configuration Panel -->
+        <StackPanel Grid.Row="0">
+            <!-- Connection Settings -->
+            <GroupBox Header="Connection Settings">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Host/IP Address:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Port:" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Slave/Unit ID:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SlaveId, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Timeout (ms):" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
+                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding TimeoutMs, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Scan Rate (ms):" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DefaultScanRateMs, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Connection Control -->
+            <GroupBox Header="Connection Control">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="Connect" Command="{Binding ConnectCommand}"/>
+                    <Button Grid.Column="1" Content="Disconnect" Command="{Binding DisconnectCommand}"/>
+
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse Width="15" Height="15"
+                                 Fill="{Binding ConnectionState, Converter={StaticResource StateToColorConverter}}"
+                                 Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+
+        <!-- Tags Panel -->
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Tags Configuration -->
+            <GroupBox Grid.Column="0" Header="Tags Configuration">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Add Tag" Command="{Binding AddTagCommand}"/>
+                        <Button Content="Remove Tag" Command="{Binding RemoveTagCommand}"/>
+                        <Button Content="Test Read" Command="{Binding TestReadCommand}"/>
+                        <Button Content="Test Write" Command="{Binding TestWriteCommand}"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Tags}"
+                              SelectedItem="{Binding SelectedTag}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="100"/>
+                            <DataGridComboBoxColumn Header="Data Type"
+                                                    SelectedItemBinding="{Binding DataType}"
+                                                    Width="100">
+                                <DataGridComboBoxColumn.ElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource" Value="{Binding Source={x:Type local:ModbusTcpConfigView}, Path=DataTypeValues}"/>
+                                    </Style>
+                                </DataGridComboBoxColumn.ElementStyle>
+                                <DataGridComboBoxColumn.EditingElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource" Value="{Binding Source={x:Type local:ModbusTcpConfigView}, Path=DataTypeValues}"/>
+                                    </Style>
+                                </DataGridComboBoxColumn.EditingElementStyle>
+                            </DataGridComboBoxColumn>
+                            <DataGridCheckBoxColumn Header="Read Only" Binding="{Binding IsReadOnly}" Width="80"/>
+                            <DataGridTextColumn Header="Scan Rate (ms)" Binding="{Binding ScanRateMs}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+
+            <!-- Tag Values -->
+            <GroupBox Grid.Column="2" Header="Tag Values (Live)">
+                <DataGrid ItemsSource="{Binding TagValues}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tag Name" Binding="{Binding TagName}" Width="*"/>
+                        <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="100"/>
+                        <DataGridTextColumn Header="Quality" Binding="{Binding Quality}" Width="80"/>
+                        <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='HH:mm:ss.fff'}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

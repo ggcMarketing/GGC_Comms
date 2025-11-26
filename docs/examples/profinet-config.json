@@ -1,0 +1,35 @@
+{
+  "$type": "Profinet",
+  "Host": "192.168.1.90",
+  "DeviceName": "SIMATIC_S7_1500",
+  "VendorId": 42,
+  "DeviceId": 1,
+  "Rack": 0,
+  "Slot": 1,
+  "TimeoutMs": 5000,
+  "UseRealTime": false,
+  "Id": "profinet-device-001",
+  "Name": "Siemens S7-1500 PLC",
+  "Enabled": true,
+  "Tags": [
+    {
+      "Id": "tag-pn-001",
+      "Name": "ProcessValue_1",
+      "Address": "DB1.DBD0",
+      "DataType": "Float",
+      "IsReadOnly": false,
+      "ScanRateMs": 50,
+      "Description": "Process value from DB1"
+    },
+    {
+      "Id": "tag-pn-002",
+      "Name": "DigitalInput_1",
+      "Address": "I0.0",
+      "DataType": "Bool",
+      "IsReadOnly": true,
+      "ScanRateMs": 20,
+      "Description": "Digital input bit 0"
+    }
+  ],
+  "DefaultScanRateMs": 100
+}

@@ -1,0 +1,41 @@
+{
+  "$type": "ModbusTcp",
+  "Host": "192.168.1.100",
+  "Port": 502,
+  "SlaveId": 1,
+  "TimeoutMs": 5000,
+  "UseRtuOverTcp": false,
+  "Id": "modbus-plc-001",
+  "Name": "Production Line PLC",
+  "Enabled": true,
+  "Tags": [
+    {
+      "Id": "tag-temp-001",
+      "Name": "Temperature_Zone1",
+      "Address": "40001",
+      "DataType": "Float",
+      "IsReadOnly": false,
+      "ScanRateMs": 1000,
+      "Description": "Temperature sensor in zone 1"
+    },
+    {
+      "Id": "tag-pressure-001",
+      "Name": "Pressure_MainLine",
+      "Address": "40003",
+      "DataType": "Int32",
+      "IsReadOnly": true,
+      "ScanRateMs": 500,
+      "Description": "Main line pressure"
+    },
+    {
+      "Id": "tag-motor-speed",
+      "Name": "Motor_Speed_RPM",
+      "Address": "40010",
+      "DataType": "UInt16",
+      "IsReadOnly": false,
+      "ScanRateMs": 100,
+      "Description": "Motor speed in RPM"
+    }
+  ],
+  "DefaultScanRateMs": 1000
+}
