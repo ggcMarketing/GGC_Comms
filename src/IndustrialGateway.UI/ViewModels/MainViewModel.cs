@@ -1,41 +1,56 @@
 using IndustrialGateway.Core.Interfaces;
 using IndustrialGateway.Core.Models;
+using IndustrialGateway.UI.Commands;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace IndustrialGateway.UI.ViewModels;
 
-/// <summary>
-/// Main ViewModel for the application
-/// </summary>
 public class MainViewModel : ViewModelBase
 {
     private readonly IProtocolClientFactory _clientFactory;
     private readonly IConfigurationService _configService;
     private readonly ILoggerFactory _loggerFactory;
 
-    private ProtocolType _selectedProtocolType = ProtocolType.ModbusTcp;
-    private ProtocolConfigViewModel? _currentProtocolViewModel;
+    private ConnectionViewModel? _selectedConnection;
+    private string _statusMessage = "Ready";
+    private int _activeConnectionCount;
 
-    public ObservableCollection<ProtocolType> SupportedProtocols { get; } = new();
+    public ObservableCollection<ConnectionGroupViewModel> ConnectionGroups { get; }
 
-    public ProtocolType SelectedProtocolType
+    public ConnectionViewModel? SelectedConnection
     {
-        get => _selectedProtocolType;
+        get => _selectedConnection;
         set
         {
-            if (SetProperty(ref _selectedProtocolType, value))
+            if (SetProperty(ref _selectedConnection, value))
             {
-                LoadProtocolConfiguration();
+                LoadConnectionConfiguration();
             }
         }
     }
 
-    public ProtocolConfigViewModel? CurrentProtocolViewModel
+    public string StatusMessage
     {
-        get => _currentProtocolViewModel;
-        set => SetProperty(ref _currentProtocolViewModel, value);
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
     }
+
+    public int ActiveConnectionCount
+    {
+        get => _activeConnectionCount;
+        set => SetProperty(ref _activeConnectionCount, value);
+    }
+
+    public ICommand AddModbusTcpCommand { get; }
+    public ICommand AddEtherNetIpCommand { get; }
+    public ICommand AddEgdCommand { get; }
+    public ICommand NewConnectionCommand { get; }
+    public ICommand SaveConfigurationCommand { get; }
+    public ICommand LoadConfigurationCommand { get; }
+    public ICommand ExitCommand { get; }
+    public ICommand AboutCommand { get; }
 
     public MainViewModel(
         IProtocolClientFactory clientFactory,
@@ -46,44 +61,154 @@ public class MainViewModel : ViewModelBase
         _configService = configService ?? throw new ArgumentNullException(nameof(configService));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
 
-        // Populate supported protocols
-        foreach (ProtocolType protocol in Enum.GetValues(typeof(ProtocolType)))
-        {
-            if (_clientFactory.SupportsProtocol(protocol))
-            {
-                SupportedProtocols.Add(protocol);
-            }
-        }
+        ConnectionGroups = new ObservableCollection<ConnectionGroupViewModel>();
 
-        // Load initial configuration
-        LoadProtocolConfiguration();
+        InitializeConnectionGroups();
+
+        AddModbusTcpCommand = new RelayCommand(_ => AddConnection(ProtocolType.ModbusTcp));
+        AddEtherNetIpCommand = new RelayCommand(_ => AddConnection(ProtocolType.EtherNetIp));
+        AddEgdCommand = new RelayCommand(_ => AddConnection(ProtocolType.Egd));
+        NewConnectionCommand = new RelayCommand(_ => ShowNewConnectionDialog());
+        SaveConfigurationCommand = new AsyncRelayCommand(async _ => await SaveConfigurationAsync());
+        LoadConfigurationCommand = new AsyncRelayCommand(async _ => await LoadConfigurationAsync());
+        ExitCommand = new RelayCommand(_ => ExitApplication());
+        AboutCommand = new RelayCommand(_ => ShowAboutDialog());
+
+        StatusMessage = "Ready";
     }
 
-    private void LoadProtocolConfiguration()
+    private void InitializeConnectionGroups()
     {
-        // Dispose previous viewmodel
-        _currentProtocolViewModel?.Dispose();
+        ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.ModbusTcp, "Modbus TCP"));
+        ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.EtherNetIp, "EtherNet/IP"));
+        ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.Egd, "GE EGD"));
+    }
 
-        // Create configuration and client for selected protocol
-        ConnectionConfig config = SelectedProtocolType switch
+    private void AddConnection(ProtocolType protocolType)
+    {
+        var group = ConnectionGroups.FirstOrDefault(g => g.ProtocolType == protocolType);
+        if (group == null) return;
+
+        ConnectionConfig config = protocolType switch
         {
-            ProtocolType.ModbusTcp => new ModbusTcpConfig { Name = "Modbus TCP Connection" },
-            ProtocolType.EtherNetIp => new EtherNetIpConfig { Name = "EtherNet/IP Connection" },
-            ProtocolType.Egd => new EgdConfig { Name = "EGD Connection" },
-            _ => new ModbusTcpConfig { Name = "Unknown" }
+            ProtocolType.ModbusTcp => new ModbusTcpConfig 
+            { 
+                Name = $"Modbus TCP {group.Connections.Count + 1}",
+                Host = "127.0.0.1",
+                Port = 502
+            },
+            ProtocolType.EtherNetIp => new EtherNetIpConfig 
+            { 
+                Name = $"EtherNet/IP {group.Connections.Count + 1}",
+                Host = "192.168.1.1",
+                Port = 44818
+            },
+            ProtocolType.Egd => new EgdConfig 
+            { 
+                Name = $"GE EGD {group.Connections.Count + 1}",
+                Host = "192.168.1.1",
+                Port = 18246
+            },
+            _ => throw new NotSupportedException($"Protocol {protocolType} not supported")
         };
 
-        var client = _clientFactory.CreateClient(config);
+        var connectionViewModel = new ConnectionViewModel(config);
+        group.Connections.Add(connectionViewModel);
+        group.IsExpanded = true;
+        SelectedConnection = connectionViewModel;
 
-        // Create appropriate viewmodel
-        CurrentProtocolViewModel = config switch
+        StatusMessage = $"Added new {protocolType} connection";
+    }
+
+    private void LoadConnectionConfiguration()
+    {
+        if (SelectedConnection == null)
         {
-            ModbusTcpConfig modbusTcpConfig => new ModbusTcpConfigViewModel(
-                modbusTcpConfig,
-                client,
-                _loggerFactory.CreateLogger<ModbusTcpConfigViewModel>()),
-            // Add other protocol viewmodels here as they are implemented
-            _ => null
-        };
+            StatusMessage = "No connection selected";
+            return;
+        }
+
+        StatusMessage = $"Selected: {SelectedConnection.Name}";
+    }
+
+    private void ShowNewConnectionDialog()
+    {
+        StatusMessage = "New connection dialog - not implemented";
+    }
+
+    private async Task SaveConfigurationAsync()
+    {
+        try
+        {
+            StatusMessage = "Saving configuration...";
+            
+            var allConfigs = ConnectionGroups
+                .SelectMany(g => g.Connections)
+                .Select(c => c.Config)
+                .ToList();
+
+            foreach (var config in allConfigs)
+            {
+                await _configService.SaveConfigurationAsync(config);
+            }
+            
+            StatusMessage = $"Configuration saved successfully ({allConfigs.Count} connections)";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving configuration: {ex.Message}";
+        }
+    }
+
+    private async Task LoadConfigurationAsync()
+    {
+        try
+        {
+            StatusMessage = "Loading configuration...";
+            
+            var configs = await _configService.LoadConfigurationsAsync();
+            
+            foreach (var group in ConnectionGroups)
+            {
+                group.Connections.Clear();
+            }
+
+            foreach (var config in configs)
+            {
+                var protocolType = config switch
+                {
+                    ModbusTcpConfig => ProtocolType.ModbusTcp,
+                    EtherNetIpConfig => ProtocolType.EtherNetIp,
+                    EgdConfig => ProtocolType.Egd,
+                    _ => (ProtocolType?)null
+                };
+
+                if (protocolType.HasValue)
+                {
+                    var group = ConnectionGroups.FirstOrDefault(g => g.ProtocolType == protocolType.Value);
+                    if (group != null)
+                    {
+                        var connectionViewModel = new ConnectionViewModel(config);
+                        group.Connections.Add(connectionViewModel);
+                    }
+                }
+            }
+
+            StatusMessage = $"Configuration loaded successfully ({configs.Count()} connections)";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading configuration: {ex.Message}";
+        }
+    }
+
+    private void ExitApplication()
+    {
+        System.Windows.Application.Current?.Shutdown();
+    }
+
+    private void ShowAboutDialog()
+    {
+        StatusMessage = "Industrial Gateway v1.0 - GGC Automation";
     }
 }

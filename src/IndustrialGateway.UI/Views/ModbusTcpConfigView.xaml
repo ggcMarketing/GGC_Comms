@@ -7,16 +7,22 @@
              xmlns:converters="clr-namespace:IndustrialGateway.UI.Converters"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="1000"
-             Background="White">
+             Background="#303030">
 
     <UserControl.Resources>
+        <!-- GGC Branding Colors -->
+        <SolidColorBrush x:Key="GGC_Red" Color="#8c3030"/>
+        <SolidColorBrush x:Key="GGC_Dark" Color="#303030"/>
+        <SolidColorBrush x:Key="GGC_White" Color="#ffffff"/>
+        
         <converters:ConnectionStateToColorConverter x:Key="StateToColorConverter"/>
 
         <Style TargetType="GroupBox">
             <Setter Property="Margin" Value="0,0,0,10"/>
             <Setter Property="Padding" Value="15"/>
-            <Setter Property="BorderBrush" Value="#DADADA"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
         </Style>
 
         <Style TargetType="TextBlock" x:Key="LabelStyle">
@@ -24,6 +30,7 @@
             <Setter Property="Margin" Value="0,0,10,0"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
         </Style>
 
         <Style TargetType="TextBox">
@@ -31,12 +38,44 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,5"/>
             <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="Background" Value="#505050"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
         <Style TargetType="Button">
             <Setter Property="Padding" Value="20,8"/>
             <Setter Property="Margin" Value="5,0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#a03838"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="#404040"/>
+            <Setter Property="AlternatingRowBackground" Value="#4a4a4a"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+        
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Dark}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
         </Style>
     </UserControl.Resources>
 

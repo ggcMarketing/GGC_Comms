@@ -35,35 +35,35 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void Constructor_ShouldPopulateSupportedProtocols()
+    public void Constructor_ShouldInitializeConnectionGroups()
     {
         // Assert
-        _viewModel.SupportedProtocols.Should().NotBeEmpty();
-        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.ModbusTcp);
-        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.EtherNetIp);
-        _viewModel.SupportedProtocols.Should().Contain(ProtocolType.Egd);
+        _viewModel.ConnectionGroups.Should().NotBeEmpty();
+        _viewModel.ConnectionGroups.Should().HaveCount(3);
+        _viewModel.ConnectionGroups.Should().Contain(g => g.ProtocolType == ProtocolType.ModbusTcp);
+        _viewModel.ConnectionGroups.Should().Contain(g => g.ProtocolType == ProtocolType.EtherNetIp);
+        _viewModel.ConnectionGroups.Should().Contain(g => g.ProtocolType == ProtocolType.Egd);
     }
 
     [Fact]
-    public void SelectedProtocolType_WhenChanged_ShouldUpdateCurrentViewModel()
+    public void AddModbusTcpCommand_ShouldAddConnectionToGroup()
     {
         // Arrange
-        var initialViewModel = _viewModel.CurrentProtocolViewModel;
+        var modbusTcpGroup = _viewModel.ConnectionGroups.First(g => g.ProtocolType == ProtocolType.ModbusTcp);
+        var initialCount = modbusTcpGroup.Connections.Count;
 
         // Act
-        _viewModel.SelectedProtocolType = ProtocolType.ModbusTcp;
+        _viewModel.AddModbusTcpCommand.Execute(null);
 
         // Assert
-        _viewModel.CurrentProtocolViewModel.Should().NotBeNull();
+        modbusTcpGroup.Connections.Should().HaveCount(initialCount + 1);
+        _viewModel.SelectedConnection.Should().NotBeNull();
     }
 
     [Fact]
-    public void SelectedProtocolType_ModbusTcp_ShouldCreateModbusTcpViewModel()
+    public void StatusMessage_ShouldInitializeToReady()
     {
-        // Act
-        _viewModel.SelectedProtocolType = ProtocolType.ModbusTcp;
-
         // Assert
-        _viewModel.CurrentProtocolViewModel.Should().BeOfType<ModbusTcpConfigViewModel>();
+        _viewModel.StatusMessage.Should().Be("Ready");
     }
 }
