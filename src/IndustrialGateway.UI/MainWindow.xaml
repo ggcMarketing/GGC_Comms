@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IndustrialGateway.UI"
         xmlns:vm="clr-namespace:IndustrialGateway.UI.ViewModels"
+        xmlns:views="clr-namespace:IndustrialGateway.UI.Views"
         xmlns:converters="clr-namespace:IndustrialGateway.UI.Converters"
         mc:Ignorable="d"
         Title="Industrial Gateway - GGC Automation" Height="700" Width="1200"
@@ -18,6 +19,33 @@
         
         <converters:ConnectionStateToColorConverter x:Key="StateToColorConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        
+        <!-- Connection Configuration Templates -->
+        <DataTemplate x:Key="ModbusTcpConfigTemplate">
+            <views:ModbusTcpConfigView/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="EtherNetIpConfigTemplate">
+            <views:EtherNetIpConfigView/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="EgdConfigTemplate">
+            <views:EgdConfigView/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="DefaultConfigTemplate">
+            <TextBlock Text="Select a connection to configure" 
+                      Foreground="{StaticResource GGC_White}"
+                      FontSize="14"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"/>
+        </DataTemplate>
+        
+        <converters:ConnectionConfigTemplateSelector x:Key="ConfigTemplateSelector"
+            ModbusTcpTemplate="{StaticResource ModbusTcpConfigTemplate}"
+            EtherNetIpTemplate="{StaticResource EtherNetIpConfigTemplate}"
+            EgdTemplate="{StaticResource EgdConfigTemplate}"
+            DefaultTemplate="{StaticResource DefaultConfigTemplate}"/>
         
         <!-- Menu Style -->
         <Style TargetType="Menu">
@@ -139,8 +167,9 @@
                     <Button Content="Add GE EGD" Command="{Binding AddEgdCommand}"/>
                 </StackPanel>
                 
-                <TreeView ItemsSource="{Binding ConnectionGroups}" 
-                          SelectedValuePath="SelectedConnection"
+                <TreeView x:Name="ConnectionTreeView"
+                          ItemsSource="{Binding ConnectionGroups}" 
+                          SelectedItemChanged="ConnectionTreeView_SelectedItemChanged"
                           Margin="5">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Connections}">
@@ -169,22 +198,9 @@
                          Background="{StaticResource GGC_Red}"/>
 
             <!-- Right Panel - Configuration Details -->
-            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="10">
-                    <TextBlock Text="Connection Configuration" 
-                              FontSize="20" FontWeight="Bold" 
-                              Foreground="{StaticResource GGC_White}"
-                              Margin="0,0,0,20"/>
-                    
-                    <TextBlock Text="Select a connection from the tree to configure its settings."
-                              Foreground="{StaticResource GGC_White}"
-                              Margin="0,0,0,10"
-                              Visibility="{Binding SelectedConnection, Converter={StaticResource BoolToVisConverter}, ConverterParameter=Inverse}"/>
-                    
-                    <!-- Connection details will be shown here when a connection is selected -->
-                    <ContentControl Content="{Binding SelectedConnection}"/>
-                </StackPanel>
-            </ScrollViewer>
+            <ContentControl Grid.Column="2" 
+                          Content="{Binding SelectedConnection}"
+                          ContentTemplateSelector="{StaticResource ConfigTemplateSelector}"/>
         </Grid>
 
         <!-- Status Bar -->
