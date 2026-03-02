@@ -14,8 +14,14 @@
     <Window.Resources>
         <!-- GGC Branding Colors -->
         <SolidColorBrush x:Key="GGC_Red" Color="#8c3030"/>
+        <SolidColorBrush x:Key="GGC_RedHover" Color="#a03838"/>
         <SolidColorBrush x:Key="GGC_Dark" Color="#303030"/>
+        <SolidColorBrush x:Key="GGC_DarkPanel" Color="#404040"/>
+        <SolidColorBrush x:Key="GGC_DarkInput" Color="#505050"/>
+        <SolidColorBrush x:Key="GGC_DarkAlt" Color="#4a4a4a"/>
         <SolidColorBrush x:Key="GGC_White" Color="#ffffff"/>
+        <SolidColorBrush x:Key="GGC_LightGray" Color="#cccccc"/>
+        <SolidColorBrush x:Key="GGC_Gray" Color="#808080"/>
         
         <converters:ConnectionStateToColorConverter x:Key="StateToColorConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
@@ -61,8 +67,8 @@
         
         <!-- MenuItem Style with proper popup background -->
         <Style TargetType="MenuItem">
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkPanel}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Template">
@@ -95,12 +101,12 @@
                                           Text="{TemplateBinding InputGestureText}"
                                           Margin="10,0,5,0"
                                           VerticalAlignment="Center"
-                                          Foreground="#CCCCCC"/>
+                                          Foreground="{StaticResource GGC_LightGray}"/>
                                 
                                 <Path Grid.Column="3"
                                      x:Name="ArrowPath"
                                      Data="M 0 0 L 4 3.5 L 0 7 Z"
-                                     Fill="#FFFFFF"
+                                     Fill="{StaticResource GGC_White}"
                                      Margin="5,0,5,0"
                                      VerticalAlignment="Center"
                                      Visibility="Collapsed"/>
@@ -111,7 +117,7 @@
                                       AllowsTransparency="True"
                                       Focusable="False"
                                       PopupAnimation="Fade">
-                                    <Border Background="#404040"
+                                    <Border Background="{StaticResource GGC_DarkPanel}"
                                            BorderBrush="{StaticResource GGC_Red}"
                                            BorderThickness="1"
                                            Padding="2">
@@ -133,10 +139,10 @@
                             </Trigger>
                             <Trigger Property="IsHighlighted" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="{StaticResource GGC_Red}"/>
-                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#808080"/>
+                                <Setter Property="Foreground" Value="{StaticResource GGC_Gray}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -146,7 +152,7 @@
         
         <!-- TreeView Style -->
         <Style TargetType="TreeView">
-            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkPanel}"/>
             <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
             <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -169,10 +175,11 @@
         <Style TargetType="TextBox">
             <Setter Property="Margin" Value="5"/>
             <Setter Property="Padding" Value="5"/>
-            <Setter Property="Background" Value="#505050"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkInput}"/>
             <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
             <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="{StaticResource GGC_White}"/>
         </Style>
         
         <!-- Label Style -->
@@ -191,43 +198,71 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#a03838"/>
+                    <Setter Property="Background" Value="{StaticResource GGC_RedHover}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="{StaticResource GGC_Gray}"/>
+                    <Setter Property="Foreground" Value="{StaticResource GGC_DarkPanel}"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
         
         <!-- ComboBox Style -->
         <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="#505050"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkInput}"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
             <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         
         <Style TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="#404040"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkPanel}"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
             <Setter Property="Padding" Value="8,5"/>
             <Style.Triggers>
                 <Trigger Property="IsHighlighted" Value="True">
                     <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
-                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                    <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
-                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                    <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
         
         <!-- DataGrid Style -->
         <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkPanel}"/>
             <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
             <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="RowBackground" Value="#404040"/>
-            <Setter Property="AlternatingRowBackground" Value="#4a4a4a"/>
+            <Setter Property="RowBackground" Value="{StaticResource GGC_DarkPanel}"/>
+            <Setter Property="AlternatingRowBackground" Value="{StaticResource GGC_DarkAlt}"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+        
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Dark}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                    <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         
         <!-- StatusBar Style -->
@@ -238,7 +273,7 @@
         
         <!-- ContextMenu Style -->
         <Style TargetType="ContextMenu">
-            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Background" Value="{StaticResource GGC_DarkPanel}"/>
             <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="2"/>
@@ -308,7 +343,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left Panel - Connection Tree -->
-            <DockPanel Grid.Column="0" Background="#404040">
+            <DockPanel Grid.Column="0" Background="{StaticResource GGC_DarkPanel}">
                 <StackPanel DockPanel.Dock="Bottom" Margin="5">
                     <Button Content="Add Modbus TCP" Command="{Binding AddModbusTcpCommand}"/>
                     <Button Content="Add EtherNet/IP" Command="{Binding AddEtherNetIpCommand}"/>
