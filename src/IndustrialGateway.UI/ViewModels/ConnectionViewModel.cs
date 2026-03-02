@@ -11,6 +11,7 @@ public class ConnectionViewModel : ViewModelBase
     private string _name;
     private ConnectionState _state;
     private ConnectionConfig _config;
+    private object? _configViewModel;
 
     public string Name
     {
@@ -31,6 +32,15 @@ public class ConnectionViewModel : ViewModelBase
     }
 
     public IProtocolClient? Client { get; set; }
+
+    /// <summary>
+    /// Protocol-specific configuration ViewModel (e.g., EgdConfigViewModel)
+    /// </summary>
+    public object? ConfigViewModel
+    {
+        get => _configViewModel;
+        set => SetProperty(ref _configViewModel, value);
+    }
 
     public ConnectionViewModel(ConnectionConfig config)
     {

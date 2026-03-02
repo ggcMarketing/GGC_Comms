@@ -1,17 +1,14 @@
 using IndustrialGateway.Core.Interfaces;
 using IndustrialGateway.Core.Models;
 using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Net.Sockets;
 
 namespace IndustrialGateway.Protocols.Egd;
 
 /// <summary>
-/// GE EGD (Ethernet Global Data) protocol client (MVP STUB implementation)
-///
-/// NOTE: This is a simulated stub for MVP purposes. In production, you would use:
-/// - GE's proprietary libraries or reverse-engineered protocol implementations
-/// - EGD is a UDP-based protocol for exchanging data between GE controllers
-///
-/// This stub simulates realistic EGD behavior for testing the architecture.
+/// GE EGD (Ethernet Global Data) protocol client
+/// Supports both Producer (sending) and Consumer (receiving) modes
 /// </summary>
 public class EgdClient : IProtocolClient
 {
@@ -20,10 +17,13 @@ public class EgdClient : IProtocolClient
     private ConnectionState _state = ConnectionState.Disconnected;
     private CancellationTokenSource? _subscriptionCts;
     private Task? _subscriptionTask;
+    private Task? _producerTask;
     private readonly List<TagDefinition> _subscribedTags = new();
-    private readonly Dictionary<string, object> _simulatedData = new();
+    private readonly Dictionary<string, object> _tagData = new();
     private readonly Random _random = new();
     private readonly object _lockObject = new();
+    private UdpClient? _udpClient;
+    private IPEndPoint? _remoteEndPoint;
 
     public ConnectionState State
     {
@@ -59,15 +59,28 @@ public class EgdClient : IProtocolClient
         try
         {
             State = ConnectionState.Connecting;
-            _logger.LogInformation("[STUB] Connecting to EGD device at {Host}:{Port}, Exchange ID {ExchangeId}",
-                _config.Host, _config.Port, _config.ExchangeId);
+            _logger.LogInformation("Connecting to EGD - Mode: {Mode}, Host: {Host}:{Port}, Exchange ID: {ExchangeId}",
+                _config.Mode, _config.Host, _config.Port, _config.ExchangeId);
 
-            // Simulate connection delay
-            await Task.Delay(300, cancellationToken);
+            // Set up UDP client based on mode
+            if (_config.Mode == EgdMode.Consumer || _config.Mode == EgdMode.Both)
+            {
+                // Consumer: Listen for incoming EGD packets
+                _udpClient = new UdpClient(_config.Port);
+                _logger.LogInformation("EGD Consumer listening on port {Port}", _config.Port);
+            }
+            else if (_config.Mode == EgdMode.Producer)
+            {
+                // Producer: Send EGD packets
+                _udpClient = new UdpClient();
+                _remoteEndPoint = new IPEndPoint(IPAddress.Parse(_config.Host), _config.Port);
+                _logger.LogInformation("EGD Producer configured to send to {Host}:{Port}", _config.Host, _config.Port);
+            }
 
-            // EGD uses UDP, so connection is typically just setting up the socket
             State = ConnectionState.Connected;
-            _logger.LogInformation("[STUB] Successfully configured EGD communication");
+            _logger.LogInformation("Successfully configured EGD communication");
+            
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -88,12 +101,16 @@ public class EgdClient : IProtocolClient
         try
         {
             State = ConnectionState.Disconnecting;
-            _logger.LogInformation("[STUB] Disconnecting from EGD device");
+            _logger.LogInformation("Disconnecting from EGD device");
 
             await UnsubscribeAllAsync(cancellationToken);
 
+            _udpClient?.Close();
+            _udpClient?.Dispose();
+            _udpClient = null;
+
             State = ConnectionState.Disconnected;
-            _logger.LogInformation("[STUB] Disconnected from EGD device");
+            _logger.LogInformation("Disconnected from EGD device");
         }
         catch (Exception ex)
         {
@@ -160,16 +177,15 @@ public class EgdClient : IProtocolClient
 
         try
         {
-            // Simulate write delay
-            await Task.Delay(30, cancellationToken);
-
-            // Store the written value in simulation
+            // Store the value for the producer to send
             lock (_lockObject)
             {
-                _simulatedData[tag.Address] = value;
+                _tagData[tag.Address] = value;
             }
 
-            _logger.LogInformation("[STUB] Successfully wrote value to tag: {TagName} = {Value}", tag.Name, value);
+            _logger.LogInformation("Updated tag value: {TagName} = {Value}", tag.Name, value);
+            
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -195,14 +211,24 @@ public class EgdClient : IProtocolClient
                 if (!_subscribedTags.Any(t => t.Id == tag.Id))
                 {
                     _subscribedTags.Add(tag);
-                    _logger.LogInformation("[STUB] Subscribed to tag: {TagName}", tag.Name);
+                    _logger.LogInformation("Subscribed to tag: {TagName}", tag.Name);
                 }
             }
 
             if (_subscriptionTask == null || _subscriptionTask.IsCompleted)
             {
                 _subscriptionCts = new CancellationTokenSource();
-                _subscriptionTask = Task.Run(() => SubscriptionLoopAsync(_subscriptionCts.Token), cancellationToken);
+                
+                // Start appropriate task based on mode
+                if (_config.Mode == EgdMode.Consumer || _config.Mode == EgdMode.Both)
+                {
+                    _subscriptionTask = Task.Run(() => ConsumerLoopAsync(_subscriptionCts.Token), cancellationToken);
+                }
+                
+                if (_config.Mode == EgdMode.Producer || _config.Mode == EgdMode.Both)
+                {
+                    _producerTask = Task.Run(() => ProducerLoopAsync(_subscriptionCts.Token), cancellationToken);
+                }
             }
         }
 
@@ -250,30 +276,30 @@ public class EgdClient : IProtocolClient
         _subscriptionTask = null;
     }
 
-    private async Task SubscriptionLoopAsync(CancellationToken cancellationToken)
+    private async Task ProducerLoopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("[STUB] Starting EGD subscription loop (simulating UDP multicast)");
+        _logger.LogInformation("Starting EGD Producer loop - sending to {Host}:{Port} every {Interval}ms",
+            _config.Host, _config.Port, _config.ProductionIntervalMs);
+
+        uint producerId = EgdProtocol.ProducerIdToUInt32(_config.ProducerId);
 
         while (!cancellationToken.IsCancellationRequested && State == ConnectionState.Connected)
         {
             try
             {
-                List<TagDefinition> tagsToRead;
-                lock (_lockObject)
+                // Build data payload from subscribed tags
+                byte[] dataPayload = BuildDataPayload();
+
+                // Build EGD packet
+                byte[] packet = EgdProtocol.BuildEgdPacket((uint)_config.ExchangeId, producerId, dataPayload);
+
+                // Send UDP packet
+                if (_udpClient != null && _remoteEndPoint != null)
                 {
-                    tagsToRead = _subscribedTags.ToList();
+                    await _udpClient.SendAsync(packet, packet.Length, _remoteEndPoint);
+                    _logger.LogDebug("Sent EGD packet: {Bytes} bytes to {Endpoint}", packet.Length, _remoteEndPoint);
                 }
 
-                foreach (var tag in tagsToRead)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-
-                    var tagValue = await ReadTagAsync(tag, cancellationToken);
-                    TagValueChanged?.Invoke(this, tagValue);
-                }
-
-                // Use production interval from config
                 await Task.Delay(_config.ProductionIntervalMs, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -282,23 +308,193 @@ public class EgdClient : IProtocolClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in subscription loop");
+                _logger.LogError(ex, "Error in producer loop");
                 await Task.Delay(1000, cancellationToken);
             }
         }
 
-        _logger.LogInformation("[STUB] EGD subscription loop stopped");
+        _logger.LogInformation("EGD Producer loop stopped");
+    }
+
+    private async Task ConsumerLoopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting EGD Consumer loop - listening on port {Port}", _config.Port);
+
+        while (!cancellationToken.IsCancellationRequested && State == ConnectionState.Connected)
+        {
+            try
+            {
+                if (_udpClient == null)
+                    break;
+
+                // Receive UDP packet
+                var result = await _udpClient.ReceiveAsync(cancellationToken);
+                byte[] receivedData = result.Buffer;
+
+                // Parse EGD packet
+                var (isValid, exchangeId, producerId, data) = EgdProtocol.ParseEgdPacket(receivedData);
+
+                if (isValid && exchangeId == (uint)_config.ExchangeId)
+                {
+                    _logger.LogDebug("Received EGD packet: Exchange {ExchangeId}, Producer {ProducerId}, {Bytes} bytes",
+                        exchangeId, producerId, data.Length);
+
+                    // Parse data and update tag values
+                    ParseDataPayload(data);
+                }
+                else if (!isValid)
+                {
+                    _logger.LogWarning("Received invalid EGD packet");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in consumer loop");
+                await Task.Delay(1000, cancellationToken);
+            }
+        }
+
+        _logger.LogInformation("EGD Consumer loop stopped");
+    }
+
+    private byte[] BuildDataPayload()
+    {
+        lock (_lockObject)
+        {
+            // Simple implementation: pack tag data sequentially
+            // In production, you'd follow the exact exchange format
+            using var ms = new MemoryStream();
+            using var writer = new BinaryWriter(ms);
+
+            foreach (var tag in _subscribedTags)
+            {
+                if (_tagData.TryGetValue(tag.Address, out var value))
+                {
+                    WriteTagValue(writer, tag.DataType, value);
+                }
+                else
+                {
+                    // Write default value
+                    WriteTagValue(writer, tag.DataType, GetDefaultValue(tag.DataType));
+                }
+            }
+
+            return ms.ToArray();
+        }
+    }
+
+    private void ParseDataPayload(byte[] data)
+    {
+        lock (_lockObject)
+        {
+            using var ms = new MemoryStream(data);
+            using var reader = new BinaryReader(ms);
+
+            foreach (var tag in _subscribedTags)
+            {
+                try
+                {
+                    if (ms.Position >= ms.Length)
+                        break;
+
+                    object value = ReadTagValue(reader, tag.DataType);
+                    _tagData[tag.Address] = value;
+
+                    // Raise event for tag value change
+                    var tagValue = new TagValue
+                    {
+                        TagId = tag.Id,
+                        TagName = tag.Name,
+                        Value = value,
+                        Timestamp = DateTime.UtcNow,
+                        Quality = TagQuality.Good
+                    };
+
+                    TagValueChanged?.Invoke(this, tagValue);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error parsing tag {TagName}", tag.Name);
+                }
+            }
+        }
+    }
+
+    private void WriteTagValue(BinaryWriter writer, TagDataType dataType, object value)
+    {
+        switch (dataType)
+        {
+            case TagDataType.Bool:
+                writer.Write(Convert.ToBoolean(value));
+                break;
+            case TagDataType.Int16:
+                writer.Write(Convert.ToInt16(value));
+                break;
+            case TagDataType.UInt16:
+                writer.Write(Convert.ToUInt16(value));
+                break;
+            case TagDataType.Int32:
+                writer.Write(Convert.ToInt32(value));
+                break;
+            case TagDataType.UInt32:
+                writer.Write(Convert.ToUInt32(value));
+                break;
+            case TagDataType.Float:
+                writer.Write(Convert.ToSingle(value));
+                break;
+            case TagDataType.Double:
+                writer.Write(Convert.ToDouble(value));
+                break;
+            default:
+                writer.Write(0);
+                break;
+        }
+    }
+
+    private object ReadTagValue(BinaryReader reader, TagDataType dataType)
+    {
+        return dataType switch
+        {
+            TagDataType.Bool => reader.ReadBoolean(),
+            TagDataType.Int16 => reader.ReadInt16(),
+            TagDataType.UInt16 => reader.ReadUInt16(),
+            TagDataType.Int32 => reader.ReadInt32(),
+            TagDataType.UInt32 => reader.ReadUInt32(),
+            TagDataType.Float => reader.ReadSingle(),
+            TagDataType.Double => reader.ReadDouble(),
+            _ => 0
+        };
+    }
+
+    private object GetDefaultValue(TagDataType dataType)
+    {
+        return dataType switch
+        {
+            TagDataType.Bool => false,
+            TagDataType.Int16 => (short)0,
+            TagDataType.UInt16 => (ushort)0,
+            TagDataType.Int32 => 0,
+            TagDataType.UInt32 => 0U,
+            TagDataType.Float => 0.0f,
+            TagDataType.Double => 0.0,
+            _ => 0
+        };
     }
 
     private object GetOrGenerateSimulatedValue(TagDefinition tag)
     {
         lock (_lockObject)
         {
-            if (_simulatedData.TryGetValue(tag.Address, out var storedValue))
+            if (_tagData.TryGetValue(tag.Address, out var storedValue))
             {
                 return storedValue;
             }
 
+            // Generate simulated value for testing
             return tag.DataType switch
             {
                 TagDataType.Bool => _random.Next(0, 2) == 1,
@@ -308,7 +504,6 @@ public class EgdClient : IProtocolClient
                 TagDataType.UInt32 => (uint)_random.Next(0, 10000),
                 TagDataType.Float => (float)(_random.NextDouble() * 100 - 50),
                 TagDataType.Double => _random.NextDouble() * 100 - 50,
-                TagDataType.String => $"EGD_Data_{_random.Next(100, 999)}",
                 _ => 0
             };
         }

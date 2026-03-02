@@ -62,7 +62,7 @@
                       Foreground="{StaticResource GGC_White}"
                       Margin="0,0,0,20"/>
 
-            <GroupBox Header="Connection Settings">
+            <GroupBox Header="🔌 Connection Settings">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -71,6 +71,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -79,55 +80,323 @@
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" Style="{StaticResource LabelStyle}"/>
                     <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" 
-                            Text="{Binding Config.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                            Text="{Binding ConfigViewModel.Config.Name, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Host/IP Address:" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" 
-                            Text="{Binding Config.Host, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mode:" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                             SelectedItem="{Binding ConfigViewModel.Config.Mode}"
+                             Margin="0,5"
+                             Padding="8,5"
+                             Background="#505050"
+                             Foreground="#FFFFFF"
+                             BorderBrush="{StaticResource GGC_Red}"
+                             BorderThickness="1">
+                        <ComboBox.Resources>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="#404040"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="Padding" Value="8,5"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.Resources>
+                        <ComboBox.ItemsSource>
+                            <x:Array Type="sys:String" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                <sys:String>Consumer</sys:String>
+                                <sys:String>Producer</sys:String>
+                                <sys:String>Both</sys:String>
+                            </x:Array>
+                        </ComboBox.ItemsSource>
+                    </ComboBox>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" 
+                              Text="Consumer: Receive data | Producer: Send data | Both: Send and receive"
+                              Foreground="#999999"
+                              FontSize="10"
+                              VerticalAlignment="Center"
+                              Margin="20,0,0,0"
+                              TextWrapping="Wrap"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Port:" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
-                    <TextBox Grid.Row="1" Grid.Column="3" 
-                            Text="{Binding Config.Port, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Exchange ID:" Style="{StaticResource LabelStyle}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Host/IP Address:" Style="{StaticResource LabelStyle}"/>
                     <TextBox Grid.Row="2" Grid.Column="1" 
-                            Text="{Binding Config.ExchangeId, UpdateSourceTrigger=PropertyChanged}"/>
+                            Text="{Binding ConfigViewModel.Config.Host, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Producer ID:" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Port:" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
                     <TextBox Grid.Row="2" Grid.Column="3" 
-                            Text="{Binding Config.ProducerId, UpdateSourceTrigger=PropertyChanged}"/>
+                            Text="{Binding ConfigViewModel.Config.Port, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Exchange ID:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" 
+                            Text="{Binding ConfigViewModel.Config.ExchangeId, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Producer ID:" Style="{StaticResource LabelStyle}" Margin="20,0,10,0"/>
+                    <TextBox Grid.Row="3" Grid.Column="3" 
+                            Text="{Binding ConfigViewModel.Config.ProducerId, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Consumer ID:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" 
+                            Text="{Binding ConfigViewModel.Config.ConsumerId, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" 
+                              Text="(Optional - for Consumer mode)"
+                              Foreground="#999999"
+                              FontSize="10"
+                              VerticalAlignment="Center"
+                              Margin="20,0,0,0"/>
                 </Grid>
             </GroupBox>
 
-            <GroupBox Header="Connection Status">
+            <GroupBox Header="🔗 Connection Control">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="Status: " FontWeight="Bold" Foreground="{StaticResource GGC_White}"/>
-                        <TextBlock Text="{Binding State}" Foreground="{StaticResource GGC_White}"/>
-                    </StackPanel>
+                    <Border Background="#404040" 
+                           BorderBrush="{StaticResource GGC_Red}" 
+                           BorderThickness="1" 
+                           Padding="10" 
+                           Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="● " 
+                                      FontSize="20" 
+                                      FontWeight="Bold"
+                                      Foreground="#00ff00"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,5,0"/>
+                            <TextBlock Text="Status: " 
+                                      FontWeight="Bold" 
+                                      Foreground="{StaticResource GGC_White}"
+                                      VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ConfigViewModel.StatusMessage}" 
+                                      Foreground="{StaticResource GGC_White}"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Center"
+                                      Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </Border>
                     
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="Connect" Width="100"/>
-                        <Button Content="Disconnect" Width="100"/>
-                        <Button Content="Test Connection" Width="120"/>
+                        <Button Content="▶ Connect" Width="110" 
+                               Command="{Binding ConfigViewModel.ConnectCommand}"/>
+                        <Button Content="⏹ Disconnect" Width="110" 
+                               Command="{Binding ConfigViewModel.DisconnectCommand}"/>
+                        <Button Content="🔍 Test Connection" Width="130" 
+                               Command="{Binding ConfigViewModel.TestConnectionCommand}"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Exchange Configuration">
-                <StackPanel>
-                    <TextBlock Text="Configure EGD exchanges for data transfer" 
-                              Foreground="{StaticResource GGC_White}"
-                              Margin="0,0,0,10"/>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Add Exchange" Width="120"/>
-                        <Button Content="Remove Exchange" Width="120"/>
-                        <Button Content="Import Config" Width="120"/>
+            <GroupBox Header="Data Point Configuration">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="300"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="200"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Mode Description -->
+                    <Border Grid.Row="0" 
+                           Background="#404040" 
+                           BorderBrush="{StaticResource GGC_Red}" 
+                           BorderThickness="1" 
+                           Padding="10" 
+                           Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource GGC_White}" FontWeight="Bold" Margin="0,0,0,5">
+                                <Run Text="Current Mode: "/>
+                                <Run Text="{Binding ConfigViewModel.Config.Mode}" Foreground="{StaticResource GGC_Red}"/>
+                            </TextBlock>
+                            <TextBlock Foreground="#cccccc" FontSize="11" TextWrapping="Wrap">
+                                <Run Text="• Consumer Mode: Tags below are INPUTS (data received from EGD producer)"/>
+                                <LineBreak/>
+                                <Run Text="• Producer Mode: Tags below are OUTPUTS (data sent to EGD consumers)"/>
+                                <LineBreak/>
+                                <Run Text="• Both Mode: Tags can be configured as inputs or outputs"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tag Configuration Buttons -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="➕ Add Data Point" Width="130" 
+                               Command="{Binding ConfigViewModel.AddTagCommand}"/>
+                        <Button Content="➖ Remove Selected" Width="130" 
+                               Command="{Binding ConfigViewModel.RemoveTagCommand}"/>
+                        <Button Content="▶ Start Monitoring" Width="130" 
+                               Command="{Binding ConfigViewModel.SubscribeTagsCommand}"/>
+                        <Button Content="⏸ Stop Monitoring" Width="130" 
+                               Command="{Binding ConfigViewModel.UnsubscribeTagsCommand}"/>
                     </StackPanel>
-                </StackPanel>
+
+                    <!-- Tags DataGrid -->
+                    <DataGrid Grid.Row="2"
+                             ItemsSource="{Binding ConfigViewModel.Tags}"
+                             SelectedItem="{Binding ConfigViewModel.SelectedTag}"
+                             AutoGenerateColumns="False"
+                             CanUserAddRows="False"
+                             Background="#404040"
+                             Foreground="{StaticResource GGC_White}"
+                             BorderBrush="{StaticResource GGC_Red}"
+                             BorderThickness="2"
+                             RowBackground="#404040"
+                             AlternatingRowBackground="#4a4a4a"
+                             HeadersVisibility="Column">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                                <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Padding" Value="8,5"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource GGC_Dark}"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="📝 Tag Name" Binding="{Binding Name}" Width="*" MinWidth="120"/>
+                            <DataGridTextColumn Header="📍 Address/Offset" Binding="{Binding Address}" Width="100"/>
+                            <DataGridComboBoxColumn Header="🔢 Data Type" 
+                                                   SelectedItemBinding="{Binding DataType}" 
+                                                   Width="100">
+                                <DataGridComboBoxColumn.ElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource">
+                                            <Setter.Value>
+                                                <x:Array Type="sys:String" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                                    <sys:String>Bool</sys:String>
+                                                    <sys:String>Int16</sys:String>
+                                                    <sys:String>UInt16</sys:String>
+                                                    <sys:String>Int32</sys:String>
+                                                    <sys:String>UInt32</sys:String>
+                                                    <sys:String>Int64</sys:String>
+                                                    <sys:String>UInt64</sys:String>
+                                                    <sys:String>Float</sys:String>
+                                                    <sys:String>Double</sys:String>
+                                                    <sys:String>String</sys:String>
+                                                </x:Array>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGridComboBoxColumn.ElementStyle>
+                                <DataGridComboBoxColumn.EditingElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource">
+                                            <Setter.Value>
+                                                <x:Array Type="sys:String" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                                    <sys:String>Bool</sys:String>
+                                                    <sys:String>Int16</sys:String>
+                                                    <sys:String>UInt16</sys:String>
+                                                    <sys:String>Int32</sys:String>
+                                                    <sys:String>UInt32</sys:String>
+                                                    <sys:String>Int64</sys:String>
+                                                    <sys:String>UInt64</sys:String>
+                                                    <sys:String>Float</sys:String>
+                                                    <sys:String>Double</sys:String>
+                                                    <sys:String>String</sys:String>
+                                                </x:Array>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGridComboBoxColumn.EditingElementStyle>
+                            </DataGridComboBoxColumn>
+                            <DataGridTextColumn Header="🧪 Test Value" Binding="{Binding TestValue, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Background" Value="#505050"/>
+                                        <Setter Property="Padding" Value="5"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridCheckBoxColumn Header="🔒 Read Only" Binding="{Binding IsReadOnly}" Width="90"/>
+                            <DataGridTextColumn Header="⏱ Update Rate (ms)" Binding="{Binding ScanRateMs}" Width="120"/>
+                            <DataGridTextColumn Header="📄 Description" Binding="{Binding Description}" Width="*" MinWidth="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Live Values Section -->
+                    <Border Grid.Row="3" 
+                           Background="#2a2a2a" 
+                           BorderBrush="{StaticResource GGC_Red}" 
+                           BorderThickness="2,0,0,0" 
+                           Padding="10,10,0,5"
+                           Margin="0,15,0,5">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊 " 
+                                      FontSize="16"
+                                      Foreground="{StaticResource GGC_Red}"
+                                      VerticalAlignment="Center"/>
+                            <TextBlock Text="LIVE DATA MONITOR" 
+                                      FontWeight="Bold" 
+                                      FontSize="14"
+                                      Foreground="{StaticResource GGC_White}"
+                                      VerticalAlignment="Center"/>
+                            <TextBlock Text=" (Real-time values from connected device)" 
+                                      FontSize="11"
+                                      Foreground="#999999"
+                                      VerticalAlignment="Center"
+                                      Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tag Values DataGrid -->
+                    <DataGrid Grid.Row="4"
+                             ItemsSource="{Binding ConfigViewModel.TagValues}"
+                             AutoGenerateColumns="False"
+                             IsReadOnly="True"
+                             CanUserAddRows="False"
+                             Background="#2a2a2a"
+                             Foreground="{StaticResource GGC_White}"
+                             BorderBrush="{StaticResource GGC_Red}"
+                             BorderThickness="2"
+                             RowBackground="#2a2a2a"
+                             AlternatingRowBackground="#353535"
+                             HeadersVisibility="Column"
+                             GridLinesVisibility="Horizontal">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#1a1a1a"/>
+                                <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Padding" Value="8,5"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="📝 Tag Name" Binding="{Binding TagName}" Width="*" MinWidth="120"/>
+                            <DataGridTextColumn Header="💾 Current Value" Binding="{Binding Value}" Width="150">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground" Value="#00ff00"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="✓ Quality" Binding="{Binding Quality}" Width="90">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Quality}" Value="Good">
+                                                <Setter Property="Foreground" Value="#00ff00"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Quality}" Value="Bad">
+                                                <Setter Property="Foreground" Value="#ff0000"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="🕐 Last Update" Binding="{Binding Timestamp, StringFormat='HH:mm:ss.fff'}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </GroupBox>
 
-            <GroupBox Header="Advanced Settings">
+            <GroupBox Header="⚙ Advanced Settings">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -136,13 +405,25 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Update Rate (ms):" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="100" Width="200" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Production Interval (ms):" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" 
+                            Text="{Binding ConfigViewModel.Config.ProductionIntervalMs, UpdateSourceTrigger=PropertyChanged}" 
+                            Width="200" HorizontalAlignment="Left"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Buffer Size:" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="1472" Width="200" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Use Multicast:" Style="{StaticResource LabelStyle}"/>
+                    <CheckBox Grid.Row="1" Grid.Column="1" 
+                             IsChecked="{Binding ConfigViewModel.Config.UseMulticast}" 
+                             VerticalAlignment="Center"
+                             Foreground="{StaticResource GGC_White}"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Multicast Group:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" 
+                            Text="{Binding ConfigViewModel.Config.MulticastGroup, UpdateSourceTrigger=PropertyChanged}" 
+                            Width="200" HorizontalAlignment="Left"
+                            IsEnabled="{Binding ConfigViewModel.Config.UseMulticast}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>

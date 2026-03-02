@@ -50,11 +50,92 @@
         <!-- Menu Style -->
         <Style TargetType="Menu">
             <Setter Property="Background" Value="{StaticResource GGC_Dark}"/>
-            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
         </Style>
         
+        <!-- MenuItem Style with proper popup background -->
         <Style TargetType="MenuItem">
-            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Border"
+                               Background="{TemplateBinding Background}"
+                               BorderBrush="{TemplateBinding BorderBrush}"
+                               BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <ContentPresenter Grid.Column="0"
+                                                ContentSource="Icon"
+                                                Margin="5,0,5,0"
+                                                VerticalAlignment="Center"/>
+                                
+                                <ContentPresenter Grid.Column="1"
+                                                ContentSource="Header"
+                                                RecognizesAccessKey="True"
+                                                VerticalAlignment="Center"
+                                                Margin="5,0,10,0"/>
+                                
+                                <TextBlock Grid.Column="2"
+                                          Text="{TemplateBinding InputGestureText}"
+                                          Margin="10,0,5,0"
+                                          VerticalAlignment="Center"
+                                          Foreground="#CCCCCC"/>
+                                
+                                <Path Grid.Column="3"
+                                     x:Name="ArrowPath"
+                                     Data="M 0 0 L 4 3.5 L 0 7 Z"
+                                     Fill="#FFFFFF"
+                                     Margin="5,0,5,0"
+                                     VerticalAlignment="Center"
+                                     Visibility="Collapsed"/>
+                                
+                                <Popup x:Name="PART_Popup"
+                                      Placement="Right"
+                                      IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                      AllowsTransparency="True"
+                                      Focusable="False"
+                                      PopupAnimation="Fade">
+                                    <Border Background="#404040"
+                                           BorderBrush="{StaticResource GGC_Red}"
+                                           BorderThickness="1"
+                                           Padding="2">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter TargetName="Border" Property="Background" Value="Transparent"/>
+                                <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="TopLevelItem">
+                                <Setter TargetName="Border" Property="Background" Value="Transparent"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource GGC_Red}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         
         <!-- TreeView Style -->
@@ -109,6 +190,30 @@
             </Style.Triggers>
         </Style>
         
+        <!-- ComboBox Style -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#505050"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GGC_Red}"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
         <!-- DataGrid Style -->
         <Style TargetType="DataGrid">
             <Setter Property="Background" Value="#404040"/>
@@ -124,6 +229,14 @@
             <Setter Property="Background" Value="{StaticResource GGC_Dark}"/>
             <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
         </Style>
+        
+        <!-- ContextMenu Style -->
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#404040"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GGC_Red}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="2"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -136,18 +249,47 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Connection" Command="{Binding NewConnectionCommand}"/>
+                <MenuItem Header="_New" Command="{Binding NewConfigurationCommand}" InputGestureText="Ctrl+N">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📄" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Open..." Command="{Binding OpenConfigurationCommand}" InputGestureText="Ctrl+O">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📂" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="_Save Configuration" Command="{Binding SaveConfigurationCommand}"/>
-                <MenuItem Header="_Load Configuration" Command="{Binding LoadConfigurationCommand}"/>
+                <MenuItem Header="_Save" Command="{Binding SaveConfigurationCommand}" InputGestureText="Ctrl+S">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💾" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save _As..." Command="{Binding SaveAsConfigurationCommand}" InputGestureText="Ctrl+Shift+S">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💾" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🚪" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Configuration">
-                <MenuItem Header="_Settings"/>
+                <MenuItem Header="_Settings" IsEnabled="False">
+                    <MenuItem.Icon>
+                        <TextBlock Text="⚙" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_About" Command="{Binding AboutCommand}"/>
+                <MenuItem Header="_About" Command="{Binding AboutCommand}">
+                    <MenuItem.Icon>
+                        <TextBlock Text="ℹ" FontSize="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
@@ -171,9 +313,27 @@
                           ItemsSource="{Binding ConnectionGroups}" 
                           SelectedItemChanged="ConnectionTreeView_SelectedItemChanged"
                           Margin="5">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem">
+                            <Setter Property="Foreground" Value="{StaticResource GGC_White}"/>
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Connections}">
                             <StackPanel Orientation="Horizontal">
+                                <StackPanel.ContextMenu>
+                                    <ContextMenu Background="#404040" BorderBrush="{StaticResource GGC_Red}">
+                                        <MenuItem Header="Add Connection" 
+                                                 Command="{Binding PlacementTarget.DataContext.DataContext.AddConnectionToGroupCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                 CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                 Foreground="#FFFFFF">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="➕" FontSize="14"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </StackPanel.ContextMenu>
                                 <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
                                 <TextBlock Text=" (" Margin="5,0,0,0"/>
                                 <TextBlock Text="{Binding Connections.Count}"/>
@@ -182,6 +342,18 @@
                             <HierarchicalDataTemplate.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
+                                        <StackPanel.ContextMenu>
+                                            <ContextMenu Background="#404040" BorderBrush="{StaticResource GGC_Red}">
+                                                <MenuItem Header="Remove Connection" 
+                                                         Command="{Binding PlacementTarget.DataContext.DataContext.RemoveConnectionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                         CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                         Foreground="#FFFFFF">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🗑" FontSize="14"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </StackPanel.ContextMenu>
                                         <Ellipse Width="8" Height="8" Margin="0,0,5,0"
                                                 Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
                                         <TextBlock Text="{Binding Name}"/>
