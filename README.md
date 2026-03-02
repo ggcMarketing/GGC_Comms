@@ -4,9 +4,10 @@ A modern .NET 8 WPF desktop application that provides a unified interface for co
 
 ## 🎯 Overview
 
-The Industrial Gateway acts as an intermediate communication interface for industrial automation systems, supporting three core industrial protocols:
+The Industrial Gateway acts as an intermediate communication interface for industrial automation systems, supporting four core industrial protocols:
 
 - ✅ **Modbus TCP** - Complete implementation using NModbus library
+- ✅ **Siemens S7** - Complete implementation using S7.NET+ library (S7-200/300/400/1200/1500)
 - ⚠️ **EtherNet/IP** - MVP stub (ready for libplctag integration)
 - ⚠️ **GE EGD** - MVP stub (Ethernet Global Data protocol)
 
@@ -123,6 +124,7 @@ public interface IProtocolClient : IDisposable
 
 ### Complete Implementation
 - **NModbus** (3.0.72) - Modbus TCP implementation
+- **S7netplus** (0.20.0) - Siemens S7 PLC communication
 
 ### Framework Dependencies
 - **Microsoft.Extensions.DependencyInjection** (9.0.0) - Dependency injection
@@ -139,6 +141,28 @@ public interface IProtocolClient : IDisposable
 - .NET 8 SDK
 - Visual Studio 2022 (or VS Code with C# extension)
 - Windows OS (for WPF)
+
+### Quick Start
+
+1. Clone the repository
+2. Open `IndustrialGateway.sln` in Visual Studio
+3. Build and run the application
+4. Click "Add Siemens S7" or "Add Modbus TCP" to create a connection
+5. Configure connection settings and add tags
+6. Click "Connect" to start communicating with your PLC
+
+### Supported Protocols
+
+#### Siemens S7 PLCs
+- S7-200, S7-300, S7-400, S7-1200, S7-1500
+- Native Ethernet connectivity (port 102)
+- Full read/write support for data blocks, memory, inputs, outputs
+- See [S7 Implementation Guide](docs/S7-Implementation.md) for details
+
+#### Modbus TCP
+- Standard Modbus TCP/IP protocol
+- Holding registers, input registers, coils, discrete inputs
+- Configurable slave ID and timeout
 
 ### Building the Solution
 
@@ -375,8 +399,8 @@ To extend this MVP:
 
 ---
 
-**Version:** 1.0.0-MVP
+**Version:** 1.0.0
 **Framework:** .NET 8
 **UI Framework:** WPF with MVVM
 **Architecture:** Clean Architecture with DI
-**Protocols:** Modbus TCP, EtherNet/IP, GE EGD
+**Protocols:** Modbus TCP, Siemens S7, EtherNet/IP (stub), GE EGD (stub)
