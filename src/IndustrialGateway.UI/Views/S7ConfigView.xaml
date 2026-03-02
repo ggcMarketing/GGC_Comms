@@ -42,8 +42,8 @@
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Slot, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Connect" Command="{Binding ConnectCommand}" IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}"/>
-                        <Button Content="Disconnect" Command="{Binding DisconnectCommand}" IsEnabled="{Binding IsConnected}"/>
+                        <Button Content="Connect" Command="{Binding ConnectCommand}"/>
+                        <Button Content="Disconnect" Command="{Binding DisconnectCommand}"/>
                     </StackPanel>
                 </Grid>
             </GroupBox>
