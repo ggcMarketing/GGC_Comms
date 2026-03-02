@@ -49,6 +49,7 @@ public class MainViewModel : ViewModelBase
     public ICommand AddModbusTcpCommand { get; }
     public ICommand AddEtherNetIpCommand { get; }
     public ICommand AddEgdCommand { get; }
+    public ICommand AddS7Command { get; }
     public ICommand AddConnectionToGroupCommand { get; }
     public ICommand RemoveConnectionCommand { get; }
     public ICommand NewConfigurationCommand { get; }
@@ -75,6 +76,7 @@ public class MainViewModel : ViewModelBase
         AddModbusTcpCommand = new RelayCommand(_ => AddConnection(ProtocolType.ModbusTcp));
         AddEtherNetIpCommand = new RelayCommand(_ => AddConnection(ProtocolType.EtherNetIp));
         AddEgdCommand = new RelayCommand(_ => AddConnection(ProtocolType.Egd));
+        AddS7Command = new RelayCommand(_ => AddConnection(ProtocolType.S7));
         AddConnectionToGroupCommand = new RelayCommand(param => AddConnectionToGroup(param));
         RemoveConnectionCommand = new RelayCommand(param => RemoveConnection(param));
         NewConfigurationCommand = new RelayCommand(_ => NewConfiguration());
@@ -92,6 +94,7 @@ public class MainViewModel : ViewModelBase
         ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.ModbusTcp, "Modbus TCP"));
         ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.EtherNetIp, "EtherNet/IP"));
         ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.Egd, "GE EGD"));
+        ConnectionGroups.Add(new ConnectionGroupViewModel(ProtocolType.S7, "Siemens S7"));
     }
 
     private void AddConnection(ProtocolType protocolType)
@@ -121,6 +124,15 @@ public class MainViewModel : ViewModelBase
                 ExchangeId = 1,
                 ProducerId = "GGC_Gateway"
             },
+            ProtocolType.S7 => new S7Config
+            {
+                Name = $"Siemens S7 {group.Connections.Count + 1}",
+                Host = "192.168.1.1",
+                Port = 102,
+                CpuType = S7CpuType.S71200,
+                Rack = 0,
+                Slot = 1
+            },
             _ => throw new NotSupportedException($"Protocol {protocolType} not supported")
         };
 
@@ -137,6 +149,10 @@ public class MainViewModel : ViewModelBase
                 egdConfig,
                 client,
                 _loggerFactory.CreateLogger<EgdConfigViewModel>()),
+            S7Config s7Config => new S7ConfigViewModel(
+                s7Config,
+                client,
+                _loggerFactory.CreateLogger<S7ConfigViewModel>()),
             // Add other protocol ViewModels here as they are implemented
             _ => null
         };
@@ -224,6 +240,7 @@ public class MainViewModel : ViewModelBase
                             ModbusTcpConfig => ProtocolType.ModbusTcp,
                             EtherNetIpConfig => ProtocolType.EtherNetIp,
                             EgdConfig => ProtocolType.Egd,
+                            S7Config => ProtocolType.S7,
                             _ => (ProtocolType?)null
                         };
 
@@ -243,6 +260,10 @@ public class MainViewModel : ViewModelBase
                                         egdConfig,
                                         client,
                                         _loggerFactory.CreateLogger<EgdConfigViewModel>()),
+                                    S7Config s7Config => new S7ConfigViewModel(
+                                        s7Config,
+                                        client,
+                                        _loggerFactory.CreateLogger<S7ConfigViewModel>()),
                                     _ => null
                                 };
 
@@ -431,7 +452,7 @@ public class MainViewModel : ViewModelBase
     private void ShowAboutDialog()
     {
         System.Windows.MessageBox.Show(
-            "Industrial Gateway v1.0\n\nGGC Automation\n\nIndustrial protocol communication gateway supporting:\n• Modbus TCP\n• EtherNet/IP\n• GE EGD",
+            "Industrial Gateway v1.0\n\nGGC Automation\n\nIndustrial protocol communication gateway supporting:\n• Modbus TCP\n• EtherNet/IP\n• GE EGD\n• Siemens S7 (S7-200/300/400/1200/1500)",
             "About Industrial Gateway",
             System.Windows.MessageBoxButton.OK,
             System.Windows.MessageBoxImage.Information);

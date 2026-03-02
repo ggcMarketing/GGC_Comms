@@ -8,6 +8,7 @@ namespace IndustrialGateway.Core.Models;
 [JsonDerivedType(typeof(ModbusTcpConfig), "ModbusTcp")]
 [JsonDerivedType(typeof(EtherNetIpConfig), "EtherNetIp")]
 [JsonDerivedType(typeof(EgdConfig), "Egd")]
+[JsonDerivedType(typeof(S7Config), "S7")]
 public abstract class ConnectionConfig
 {
     /// <summary>
@@ -48,5 +49,6 @@ public enum ProtocolType
 {
     ModbusTcp,
     EtherNetIp,
-    Egd
+    Egd,
+    S7
 }

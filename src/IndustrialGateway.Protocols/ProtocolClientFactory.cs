@@ -3,6 +3,7 @@ using IndustrialGateway.Core.Models;
 using IndustrialGateway.Protocols.Egd;
 using IndustrialGateway.Protocols.EtherNetIp;
 using IndustrialGateway.Protocols.ModbusTcp;
+using IndustrialGateway.Protocols.S7;
 using Microsoft.Extensions.Logging;
 
 namespace IndustrialGateway.Protocols;
@@ -35,6 +36,10 @@ public class ProtocolClientFactory : IProtocolClientFactory
                 egdConfig,
                 _loggerFactory.CreateLogger<EgdClient>()),
 
+            S7Config s7Config => new S7Client(
+                s7Config,
+                _loggerFactory.CreateLogger<S7Client>()),
+
             _ => throw new NotSupportedException($"Protocol type {config.ProtocolType} is not supported")
         };
     }
@@ -46,6 +51,7 @@ public class ProtocolClientFactory : IProtocolClientFactory
             ProtocolType.ModbusTcp => true,
             ProtocolType.EtherNetIp => true,
             ProtocolType.Egd => true,
+            ProtocolType.S7 => true,
             _ => false
         };
     }

@@ -10,6 +10,7 @@ public class ConnectionConfigTemplateSelector : DataTemplateSelector
     public DataTemplate? ModbusTcpTemplate { get; set; }
     public DataTemplate? EtherNetIpTemplate { get; set; }
     public DataTemplate? EgdTemplate { get; set; }
+    public DataTemplate? S7Template { get; set; }
     public DataTemplate? DefaultTemplate { get; set; }
 
     public override DataTemplate? SelectTemplate(object item, DependencyObject container)
@@ -21,6 +22,7 @@ public class ConnectionConfigTemplateSelector : DataTemplateSelector
                 ModbusTcpConfig => ModbusTcpTemplate,
                 EtherNetIpConfig => EtherNetIpTemplate,
                 EgdConfig => EgdTemplate,
+                S7Config => S7Template,
                 _ => DefaultTemplate
             };
         }

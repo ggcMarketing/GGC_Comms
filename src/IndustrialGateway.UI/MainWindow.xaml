@@ -19,6 +19,7 @@
         
         <converters:ConnectionStateToColorConverter x:Key="StateToColorConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
         
         <!-- Connection Configuration Templates -->
         <DataTemplate x:Key="ModbusTcpConfigTemplate">
@@ -33,6 +34,10 @@
             <views:EgdConfigView/>
         </DataTemplate>
         
+        <DataTemplate x:Key="S7ConfigTemplate">
+            <views:S7ConfigView/>
+        </DataTemplate>
+        
         <DataTemplate x:Key="DefaultConfigTemplate">
             <TextBlock Text="Select a connection to configure" 
                       Foreground="{StaticResource GGC_White}"
@@ -45,6 +50,7 @@
             ModbusTcpTemplate="{StaticResource ModbusTcpConfigTemplate}"
             EtherNetIpTemplate="{StaticResource EtherNetIpConfigTemplate}"
             EgdTemplate="{StaticResource EgdConfigTemplate}"
+            S7Template="{StaticResource S7ConfigTemplate}"
             DefaultTemplate="{StaticResource DefaultConfigTemplate}"/>
         
         <!-- Menu Style -->
@@ -307,6 +313,7 @@
                     <Button Content="Add Modbus TCP" Command="{Binding AddModbusTcpCommand}"/>
                     <Button Content="Add EtherNet/IP" Command="{Binding AddEtherNetIpCommand}"/>
                     <Button Content="Add GE EGD" Command="{Binding AddEgdCommand}"/>
+                    <Button Content="Add Siemens S7" Command="{Binding AddS7Command}"/>
                 </StackPanel>
                 
                 <TreeView x:Name="ConnectionTreeView"
