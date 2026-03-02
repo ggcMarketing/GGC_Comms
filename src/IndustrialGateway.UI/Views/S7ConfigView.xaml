@@ -40,7 +40,13 @@
                     <ComboBox Grid.Row="2" Grid.Column="1" 
                              ItemsSource="{Binding AvailableCpuTypes}"
                              SelectedItem="{Binding CpuType}"
-                             ToolTip="Select your PLC CPU type"/>
+                             ToolTip="Select your PLC CPU type">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <TextBlock Grid.Row="2" Grid.Column="2" Text="Required" Foreground="Orange" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
                     <Label Grid.Row="3" Grid.Column="0" Content="Rack:" VerticalAlignment="Center"/>
