@@ -5,15 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:IndustrialGateway.UI.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800">
+             d:DesignHeight="700" d:DesignWidth="900">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="10">
             <!-- Connection Settings -->
-            <GroupBox Header="Connection Settings">
+            <GroupBox Header="Connection Settings" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -22,74 +23,126 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="Host/IP:"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="Host/IP Address:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" 
+                             ToolTip="IP address or hostname of the S7 PLC (e.g., 192.168.1.100)"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Required" Foreground="Orange" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="Port:"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="Port:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="TCP port (default: 102 for S7 communication)"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Default: 102" Foreground="Gray" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="CPU Type:"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="CPU Type:" VerticalAlignment="Center"/>
                     <ComboBox Grid.Row="2" Grid.Column="1" 
                              ItemsSource="{Binding AvailableCpuTypes}"
-                             SelectedItem="{Binding CpuType}"/>
+                             SelectedItem="{Binding CpuType}"
+                             ToolTip="Select your PLC CPU type"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Required" Foreground="Orange" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="Rack:"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Rack, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="Rack:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Rack, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Rack number (typically 0)"/>
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Typically: 0" Foreground="Gray" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Slot:"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Slot, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Row="4" Grid.Column="0" Content="Slot:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Slot, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="CPU slot number (check hardware config in TIA Portal)"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Typically: 1 or 2" Foreground="Gray" Margin="5,0,0,0" VerticalAlignment="Center"/>
 
-                    <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Connect" Command="{Binding ConnectCommand}"/>
-                        <Button Content="Disconnect" Command="{Binding DisconnectCommand}"/>
+                    <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10"/>
+
+                    <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Test Connection" Command="{Binding ConnectCommand}" Width="120" Margin="5"/>
+                        <Button Content="Disconnect" Command="{Binding DisconnectCommand}" Width="100" Margin="5"/>
                     </StackPanel>
                 </Grid>
             </GroupBox>
 
-            <!-- Status -->
-            <GroupBox Header="Status">
-                <StackPanel>
-                    <TextBlock Text="{Binding StatusMessage}" FontWeight="Bold"/>
-                </StackPanel>
+            <!-- Connection Status -->
+            <GroupBox Header="Connection Status" Margin="0,0,0,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" Content="Status:" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusMessage}" 
+                               VerticalAlignment="Center" Margin="5,0,0,0"/>
+
+                    <Label Grid.Row="1" Grid.Column="0" Content="Connected:" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                        <Run Text="{Binding IsConnected, Mode=OneWay}"/>
+                        <Run Text=" " />
+                        <Run Text="●" FontSize="16">
+                            <Run.Style>
+                                <Style TargetType="Run">
+                                    <Setter Property="Foreground" Value="Gray"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                            <Setter Property="Foreground" Value="LimeGreen"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Run.Style>
+                        </Run>
+                    </TextBlock>
+                </Grid>
             </GroupBox>
 
             <!-- Tags Configuration -->
-            <GroupBox Header="Tags">
+            <GroupBox Header="Tag Configuration" Margin="0,0,0,10">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Add Tag" Command="{Binding AddTagCommand}"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="Configure tags to read/write from the PLC" 
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Button Content="+ Add Tag" Command="{Binding AddTagCommand}" Padding="10,3"/>
                     </StackPanel>
 
                     <DataGrid ItemsSource="{Binding Tags}" 
                              AutoGenerateColumns="False"
                              CanUserAddRows="False"
-                             SelectionMode="Single">
+                             CanUserDeleteRows="False"
+                             SelectionMode="Single"
+                             MinHeight="150">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
-                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="150">
+                            <DataGridTextColumn Header="Tag Name" Binding="{Binding Name}" Width="150"/>
+                            <DataGridTextColumn Header="S7 Address" Binding="{Binding Address}" Width="150">
                                 <DataGridTextColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader">
-                                        <Setter Property="ToolTip" Value="e.g., DB1.DBW0, DB1.DBD10, M0.0"/>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="ToolTip" Value="S7 address format: DB1.DBW0, DB1.DBD10, M0.0, I0.0, Q0.0"/>
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Data Type" Binding="{Binding DataType}" Width="100"/>
-                            <DataGridTextColumn Header="Value" Binding="{Binding TestValue}" Width="100" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="200" IsReadOnly="True"/>
-                            <DataGridTemplateColumn Header="Actions" Width="150">
+                            <DataGridTextColumn Header="Current Value" Binding="{Binding TestValue}" Width="120" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Info" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
+                            <DataGridTemplateColumn Header="Actions" Width="180">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Button Content="Read" 
                                                    Command="{Binding DataContext.ReadTagCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                    CommandParameter="{Binding}"
-                                                   Margin="2"/>
+                                                   Width="60" Margin="2" Padding="5,2"/>
                                             <Button Content="Remove" 
                                                    Command="{Binding DataContext.RemoveTagCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                    CommandParameter="{Binding}"
-                                                   Margin="2"/>
+                                                   Width="70" Margin="2" Padding="5,2"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -99,24 +152,54 @@
                 </DockPanel>
             </GroupBox>
 
-            <!-- Help Text -->
-            <GroupBox Header="S7 Address Format">
-                <TextBlock TextWrapping="Wrap">
-                    <Run Text="Examples of valid S7 addresses:"/>
-                    <LineBreak/>
-                    <Run Text="• DB1.DBW0 - Data Block 1, Word at byte 0"/>
-                    <LineBreak/>
-                    <Run Text="• DB1.DBD10 - Data Block 1, Double Word at byte 10"/>
-                    <LineBreak/>
-                    <Run Text="• DB1.DBB5 - Data Block 1, Byte at byte 5"/>
-                    <LineBreak/>
-                    <Run Text="• M0.0 - Memory bit 0.0"/>
-                    <LineBreak/>
-                    <Run Text="• I0.0 - Input bit 0.0"/>
-                    <LineBreak/>
-                    <Run Text="• Q0.0 - Output bit 0.0"/>
-                </TextBlock>
-            </GroupBox>
+            <!-- Quick Reference -->
+            <Expander Header="S7 Address Format Reference" IsExpanded="False" Margin="0,0,0,10">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Data Blocks (DB):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="• DB1.DBW0 - Word at byte 0" Margin="10,2"/>
+                        <TextBlock Text="• DB1.DBD10 - DWord at byte 10" Margin="10,2"/>
+                        <TextBlock Text="• DB1.DBB5 - Byte at byte 5" Margin="10,2"/>
+                        <TextBlock Text="• DB1.DBX0.0 - Bit 0 of byte 0" Margin="10,2"/>
+                        
+                        <TextBlock Text="Memory (M):" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="• M0.0 - Memory bit 0.0" Margin="10,2"/>
+                        <TextBlock Text="• MW10 - Memory word at byte 10" Margin="10,2"/>
+                        <TextBlock Text="• MD20 - Memory dword at byte 20" Margin="10,2"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Inputs (I):" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="• I0.0 - Input bit 0.0" Margin="10,2"/>
+                        <TextBlock Text="• IW10 - Input word at byte 10" Margin="10,2"/>
+                        <TextBlock Text="• ID20 - Input dword at byte 20" Margin="10,2"/>
+                        
+                        <TextBlock Text="Outputs (Q):" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="• Q0.0 - Output bit 0.0" Margin="10,2"/>
+                        <TextBlock Text="• QW10 - Output word at byte 10" Margin="10,2"/>
+                        <TextBlock Text="• QD20 - Output dword at byte 20" Margin="10,2"/>
+                    </StackPanel>
+                </Grid>
+            </Expander>
+
+            <!-- Connection Tips -->
+            <Expander Header="Connection Tips" IsExpanded="False">
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
+                        <Run Text="Before connecting:" FontWeight="Bold"/>
+                    </TextBlock>
+                    <TextBlock Text="1. Verify the PLC IP address is reachable (ping test)" Margin="10,2"/>
+                    <TextBlock Text="2. Ensure port 102 is not blocked by firewall" Margin="10,2"/>
+                    <TextBlock Text="3. Check rack and slot numbers in TIA Portal/Step7 hardware config" Margin="10,2"/>
+                    <TextBlock Text="4. Verify PLC allows external connections (security settings)" Margin="10,2"/>
+                    <TextBlock Text="5. Use non-optimized data blocks for tag access" Margin="10,2"/>
+                </StackPanel>
+            </Expander>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

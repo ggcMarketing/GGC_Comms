@@ -137,16 +137,44 @@ public class S7ConfigViewModel : ViewModelBase
     {
         try
         {
-            StatusMessage = "Connecting...";
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(Host))
+            {
+                StatusMessage = "Error: Host/IP address is required";
+                return;
+            }
+
+            if (Port <= 0 || Port > 65535)
+            {
+                StatusMessage = "Error: Port must be between 1 and 65535";
+                return;
+            }
+
+            StatusMessage = $"Connecting to {Host}:{Port} (Rack {Rack}, Slot {Slot})...";
+            _logger.LogInformation("Attempting to connect to S7 PLC at {Host}:{Port}, CPU Type: {CpuType}, Rack: {Rack}, Slot: {Slot}", 
+                Host, Port, CpuType, Rack, Slot);
+
             await _client.ConnectAsync();
+            
             IsConnected = true;
-            StatusMessage = $"Connected to {Host}";
-            _logger.LogInformation("Connected to S7 PLC at {Host}", Host);
+            StatusMessage = $"Connected successfully to {Host} ({CpuType})";
+            _logger.LogInformation("Successfully connected to S7 PLC at {Host}", Host);
         }
         catch (Exception ex)
         {
+            IsConnected = false;
             StatusMessage = $"Connection failed: {ex.Message}";
-            _logger.LogError(ex, "Failed to connect to S7 PLC");
+            _logger.LogError(ex, "Failed to connect to S7 PLC at {Host}:{Port}", Host, Port);
+            
+            System.Windows.MessageBox.Show(
+                $"Failed to connect to S7 PLC:\n\n{ex.Message}\n\nPlease check:\n" +
+                "• PLC IP address is correct and reachable\n" +
+                "• Port 102 is not blocked by firewall\n" +
+                "• Rack and Slot numbers match hardware config\n" +
+                "• PLC allows external connections",
+                "Connection Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
         }
     }
 
@@ -154,14 +182,15 @@ public class S7ConfigViewModel : ViewModelBase
     {
         try
         {
+            StatusMessage = "Disconnecting...";
             await _client.DisconnectAsync();
             IsConnected = false;
             StatusMessage = "Disconnected";
-            _logger.LogInformation("Disconnected from S7 PLC");
+            _logger.LogInformation("Disconnected from S7 PLC at {Host}", Host);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Disconnect failed: {ex.Message}";
+            StatusMessage = $"Disconnect error: {ex.Message}";
             _logger.LogError(ex, "Failed to disconnect from S7 PLC");
         }
     }
@@ -196,20 +225,49 @@ public class S7ConfigViewModel : ViewModelBase
     {
         if (parameter is TagViewModel tagVm)
         {
+            if (!IsConnected)
+            {
+                StatusMessage = "Error: Not connected to PLC";
+                System.Windows.MessageBox.Show(
+                    "Please connect to the PLC before reading tags.",
+                    "Not Connected",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 var tag = _config.Tags.FirstOrDefault(t => t.Name == tagVm.Name);
                 if (tag != null)
                 {
+                    StatusMessage = $"Reading tag '{tag.Name}' from {tag.Address}...";
+                    _logger.LogInformation("Reading tag {TagName} from address {Address}", tag.Name, tag.Address);
+                    
                     var result = await _client.ReadTagAsync(tag);
+                    
                     tagVm.TestValue = result.Value?.ToString() ?? "null";
                     tagVm.Description = $"Quality: {result.Quality}, Time: {result.Timestamp:HH:mm:ss}";
+                    
+                    StatusMessage = $"Successfully read '{tag.Name}': {result.Value}";
+                    _logger.LogInformation("Successfully read tag {TagName}: {Value}", tag.Name, result.Value);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to read tag {TagName}", tagVm.Name);
-                tagVm.Description = "Quality: Bad";
+                tagVm.Description = $"Error: {ex.Message}";
+                StatusMessage = $"Failed to read tag '{tagVm.Name}': {ex.Message}";
+                
+                System.Windows.MessageBox.Show(
+                    $"Failed to read tag '{tagVm.Name}':\n\n{ex.Message}\n\n" +
+                    "Please verify:\n" +
+                    "• Address format is correct\n" +
+                    "• Data block exists and is not optimized\n" +
+                    "• You have read access to this address",
+                    "Read Error",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
             }
         }
     }
