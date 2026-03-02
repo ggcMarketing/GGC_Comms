@@ -75,7 +75,7 @@
                                     </Style>
                                 </DataGridTextColumn.HeaderStyle>
                             </DataGridTextColumn>
-                            <DataGridComboBoxColumn Header="Data Type" SelectedItemBinding="{Binding DataType}" Width="100"/>
+                            <DataGridTextColumn Header="Data Type" Binding="{Binding DataType}" Width="100"/>
                             <DataGridTextColumn Header="Value" Binding="{Binding TestValue}" Width="100" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="200" IsReadOnly="True"/>
                             <DataGridTemplateColumn Header="Actions" Width="150">
